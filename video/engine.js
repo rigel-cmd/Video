@@ -4,8 +4,9 @@
    - les fonctions de mise à jour (on) recalculent le reste (machine à écrire, compteurs, canvas…).
    Le rendu vidéo appelle window.seek(t) image par image ; l'aperçu navigateur le fait en temps réel. */
 (function () {
-  const DUR = window.TL ? window.TL.duration : 82.5;
-  const FPS = window.TL ? window.TL.fps : 30;
+  if (!window.TL) throw new Error('timeline.js doit être chargé avant engine.js');
+  const DUR = window.TL.duration;
+  const FPS = window.TL.fps;
   const tracks = [];
   const updaters = [];
 
@@ -116,17 +117,11 @@
     return tEnd;
   }
 
-  // Compteur numérique
-  function counter(el, t0, t1, from, to, fmt = (v) => String(Math.round(v))) {
-    el = $(el);
-    on((t) => { el.textContent = fmt(lerp(from, to, easeOut(clamp((t - t0) / (t1 - t0))))); });
-  }
-
   function seek(t) {
     const ms = t * 1000;
     for (const a of tracks) a.currentTime = ms;
     for (const u of updaters) u(t);
   }
 
-  window.Engine = { DUR, FPS, E, K, on, scene, type, counter, seek, $, $$, clamp, lerp, rnd, easeOut, easeInOut };
+  window.Engine = { DUR, FPS, E, K, on, scene, type, seek, $, $$, clamp, lerp, rnd, easeOut, easeInOut };
 })();

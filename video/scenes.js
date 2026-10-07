@@ -13,7 +13,7 @@
     K(el, [[t, { opacity: 0, transform: `scale(${from})` }], [t + d, { opacity: 1, transform: 'scale(1)' }, 'back']]);
   const exit = (el, t1, d = 0.3) =>
     K(el, [[t1 - d, { opacity: 1, filter: 'blur(0px)' }], [t1, { opacity: 0, filter: 'blur(8px)' }, 'in']]);
-  const typeKey = (el, key, caret) => {
+  const typeKey = (el, key, caret = null) => {
     const [t0, cps, n] = ty[key];
     const chars = [...$(el).textContent].length;
     if (chars !== n) console.warn(`timeline.js : « ${key} » compte ${chars} caractères (et non ${n})`);
@@ -31,16 +31,20 @@
   K('#hud', [[h0, { opacity: 0 }], [h0 + 0.3, { opacity: 1 }, 'out'], [iris0 - 0.1, { opacity: 1 }], [iris0 + 0.2, { opacity: 0 }, 'lin']]);
   $$('#hud .corner').forEach((c, i) =>
     K(c, [[h0 + i * 0.05, { opacity: 0, transform: 'scale(1.8)' }], [h0 + 0.5 + i * 0.05, { opacity: 1, transform: 'scale(1)' }, 'out']]));
-  type('.hud-tl', h0 + 0.1, 75);
-  type('.hud-bl', h0 + 0.25, 75);
-  type('.hud-br', h0 + 0.3, 75);
+  typeKey('.hud-tl', 'hud_tl');
+  typeKey('.hud-bl', 'hud_bl');
+  typeKey('.hud-br', 'hud_br');
   fadeIn('.hud-tr', h0 + 0.2, 0.4);
   const rec = $('.rec'), tc = $('#tc');
   const pad = (v) => String(v).padStart(2, '0');
+  // Le minuteur rejoint le compte à rebours : il affiche 00:05:00 au « 5 » et 00:00:00 au zéro
+  const dg = TL.digits, step = dg[1] - dg[0], cdLen = zero - dg[0];
+  const remaining = (t) => (t < dg[0] ? zero - t + (5 - cdLen) : ((zero - t) / cdLen) * 5);
   on((t) => {
-    rec.style.opacity = Math.floor(t * 1.6) % 2 ? 0.25 : 1;
     const done = t >= zero;
-    const rem = Math.max(0, zero - t);
+    rec.style.opacity = done ? 1 : Math.floor(t * 1.6) % 2 ? 0.25 : 1;
+    rec.classList.toggle('ok', done);
+    const rem = Math.max(0, remaining(t));
     tc.textContent = done ? 'annulée' : `T-${pad(Math.floor(rem / 60))}:${pad(Math.floor(rem % 60))}:${pad(Math.floor((rem * 30) % 30))}`;
     tc.classList.toggle('ok', done);
   });
@@ -132,7 +136,7 @@
   const m0 = S.missions[0];
   fadeUp('#s-missions .sur', m0 + 0.15, 0.6, 20);
   lineUp('#s-missions .h .line>span', m0 + 0.25);
-  fadeIn('#s-missions .count', m0 + 0.4, 0.5);
+  fadeIn('#s-missions .count', TL.cards.start, 0.4);
   const cols = [110, 542, 974, 1406], rows = [300, 618];
   const cards = $$('#s-missions .card');
   const cardT = (i) => TL.cards.start + i * TL.cards.step;
@@ -141,9 +145,10 @@
     Object.assign(c.style, { left: x + 'px', top: y + 'px', zIndex: 10 + i });
     const dx = 960 - (x + 202), dy = 575 - (y + 145), t0 = cardT(i);
     const big = (s) => `translate(${dx}px,${dy}px) scale(${s})`;
+    // La carte reste agrandie ≈0,85 s ; elle regagne la grille pendant que la suivante arrive (z-index plus haut)
     K(c, [[t0, { opacity: 0, transform: big(2.3) }], [t0 + 0.2, { opacity: 1, transform: big(1.8) }, 'out'],
-          [t0 + 0.88, { transform: big(1.74) }, 'lin'], [t0 + 1.22, { transform: 'translate(0px,0px) scale(1)' }, 'inOut']]);
-    K(c, [[t0 + 0.2, { borderColor: 'rgba(252,175,25,.95)' }], [t0 + 0.88, { borderColor: 'rgba(252,175,25,.95)' }], [t0 + 1.4, { borderColor: 'rgba(255,255,255,.1)' }, 'out']]);
+          [t0 + 1.05, { transform: big(1.74) }, 'lin'], [t0 + 1.4, { transform: 'translate(0px,0px) scale(1)' }, 'inOut']]);
+    K(c, [[t0 + 0.2, { borderColor: 'rgba(252,175,25,.95)' }], [t0 + 1.05, { borderColor: 'rgba(252,175,25,.95)' }], [t0 + 1.55, { borderColor: 'rgba(255,255,255,.1)' }, 'out']]);
   });
   const mCount = $('#m-count');
   on((t) => {
@@ -151,7 +156,7 @@
     for (let i = 0; i < cards.length; i++) if (t >= cardT(i)) n = i + 1;
     mCount.textContent = pad(n);
   });
-  const sw = cardT(cards.length - 1) + 1.35;
+  const sw = cardT(cards.length - 1) + 1.5;
   K('.grid-sweep', [[sw, { transform: 'translateX(-260px)' }], [sw + 1.1, { transform: 'translateX(1920px)' }, 'inOut']]);
   K('.grid-sweep', [[sw, { opacity: 0 }], [sw + 0.1, { opacity: 1 }], [sw + 1.0, { opacity: 1 }], [sw + 1.1, { opacity: 0 }]]);
   exit('#s-missions', S.missions[1]);
@@ -181,7 +186,7 @@
   });
   fadeIn('.lbl-2', TL.quals.start - 0.3);
   $$('.quals li').forEach((li, i) => pop(li, TL.quals.start + i * TL.quals.step, 0.45, 0.6));
-  fadeUp('.note', TL.stamp + 0.6, 0.7, 16);
+  fadeUp('.note', TL.quals.start + TL.quals.n * TL.quals.step + 0.1, 0.7, 16);
   exit('#s-profil', S.profil[1]);
 
   /* ———— 6 · Candidater ———— */
@@ -194,7 +199,7 @@
   K('#s-contact', [[S.contact[1] - 0.3, { opacity: 1 }], [S.contact[1], { opacity: 0 }, 'in']]);
 
   /* ———— 7 · Compte à rebours… et le message ne s'autodétruit pas ———— */
-  const d0 = S.countdown[0], dg = TL.digits, step = dg[1] - dg[0];
+  const d0 = S.countdown[0], fix = TL.correct;
   const ticks = $('.ticks');
   for (let i = 0; i < 60; i++) {
     const a = (i / 60) * Math.PI * 2, r1 = 244, r2 = i % 5 === 0 ? 262 : 252;
@@ -204,24 +209,30 @@
     ticks.appendChild(l);
   }
   K('.cd-top', [[d0, { opacity: 0, transform: 'translateY(-20px)' }], [d0 + 0.4, { opacity: 1, transform: 'translateY(0px)' }, 'out']]);
-  K('.cd-bot', [[d0 + 0.15, { opacity: 0 }], [d0 + 0.55, { opacity: 1 }, 'out']]);
+  K('.cd-bot', [[dg[0] - 0.1, { opacity: 0 }], [dg[0] + 0.3, { opacity: 1 }, 'out']]);
   K('.ring', [[d0, { opacity: 0, transform: 'scale(.8)' }], [d0 + 0.35, { opacity: 1, transform: 'scale(1)' }, 'out']]);
-  K('.ring-prog', [[dg[0], { strokeDashoffset: 0 }], [zero, { strokeDashoffset: 1 }, 'lin'], [zero + 0.7, { strokeDashoffset: 0 }, 'inOut']]);
-  K('.ring-prog', [[zero, { stroke: '#B52026' }], [zero + 0.2, { stroke: '#8EC33F' }, 'out']]);
+  // L'anneau s'arme (se remplit) avant le « 5 », se vide jusqu'au zéro, puis se remplit en vert à la correction
+  K('.ring-prog', [[d0 + 0.1, { strokeDashoffset: 1 }], [dg[0], { strokeDashoffset: 0 }, 'inOut'], [zero, { strokeDashoffset: 1 }, 'lin'],
+                   [fix, { strokeDashoffset: 1 }], [fix + 0.7, { strokeDashoffset: 0 }, 'inOut']]);
+  K('.ring-prog', [[fix, { stroke: '#B52026' }], [fix + 0.2, { stroke: '#8EC33F' }, 'out']]);
   $$('.digit').forEach((d, i) => {
     const t = dg[i];
     K(d, [[t, { opacity: 0, transform: 'scale(1.7)' }], [t + 0.12, { opacity: 1, transform: 'scale(1)' }, 'out'],
           [t + step - 0.15, { opacity: 1, transform: 'scale(.94)' }, 'lin'], [t + step, { opacity: 0, transform: 'scale(.82)' }, 'in']]);
   });
+  const sec = $('.cd-sec');
+  on((t) => { sec.textContent = t >= dg[4] ? 'seconde' : 'secondes'; });
   K('.alarm', [...dg.flatMap((t, i) => [[t, { opacity: 0.15 + 0.05 * i }], [t + 0.06, { opacity: 1 }, 'out'], [t + step - 0.05, { opacity: 0.15 + 0.06 * i }, 'out']]),
                [zero + 0.6, { opacity: 0 }, 'out']]);
-  // À zéro : la mèche s'éteint, le message est barré puis corrigé
-  K('.cd-ok', [[zero, { opacity: 0, transform: 'scale(.3)' }], [zero + 0.45, { opacity: 1, transform: 'scale(1)' }, 'back']]);
-  K('.ok-path', [[zero + 0.2, { strokeDashoffset: 1 }], [zero + 0.6, { strokeDashoffset: 0 }, 'out']]);
-  K('.strike', [[zero + 0.05, { transform: 'scaleX(0)' }], [zero + 0.3, { transform: 'scaleX(1)' }, 'inOut']]);
-  K('.cd-a', [[zero + 0.4, { opacity: 1, transform: 'translateY(0px)' }], [zero + 0.6, { opacity: 0, transform: 'translateY(-30px)' }, 'in']]);
-  K('.cd-b', [[zero + 0.6, { opacity: 0, transform: 'translateY(30px)' }], [zero + 1.0, { opacity: 1, transform: 'translateY(0px)' }, 'out']]);
+  // À zéro : la mèche s'éteint, la phrase est barrée et reste lisible…
+  K('.strike', [[zero + 0.06, { transform: 'scaleX(0)' }], [zero + 0.36, { transform: 'scaleX(1)' }, 'inOut']]);
   K('.cd-sec', [[zero, { opacity: 1 }], [zero + 0.3, { opacity: 0 }, 'in']]);
+  // … puis elle est corrigée, et la coche verte arrive avec la correction
+  K('.cd-a', [[fix - 0.05, { opacity: 1, transform: 'translateY(0px)' }], [fix + 0.15, { opacity: 0, transform: 'translateY(-30px)' }, 'in']]);
+  K('.cd-b', [[fix + 0.15, { opacity: 0, transform: 'translateY(30px)' }], [fix + 0.55, { opacity: 1, transform: 'translateY(0px)' }, 'out']]);
+  K('.cd-ok', [[fix, { opacity: 0, transform: 'scale(.3)' }], [fix + 0.45, { opacity: 1, transform: 'scale(1)' }, 'back'],
+               [iris0 - 0.22, { opacity: 1, transform: 'scale(1)' }], [iris0 + 0.02, { opacity: 0, transform: 'scale(.85)' }, 'in']]);
+  K('.ok-path', [[fix + 0.2, { strokeDashoffset: 1 }], [fix + 0.6, { strokeDashoffset: 0 }, 'out']]);
   K('.cd-rep', [[TL.reply, { opacity: 0, transform: 'translateY(20px)' }], [TL.reply + 0.6, { opacity: 1, transform: 'translateY(0px)' }, 'out']]);
   // Ouverture en iris vers la carte finale (sans explosion ni écran brûlé)
   K('#s-end', [[iris0, { clipPath: 'circle(0px at 960px 540px)' }], [iris1, { clipPath: 'circle(1150px at 960px 540px)' }, 'inOut']]);
@@ -234,9 +245,15 @@
   fadeUp('.end-name', TL.logo + 0.5, 0.7, 14);
   lineUp('.end-h .line>span', TL.logo + 0.8, 0.9);
   K('.end-h mark', [[TL.logo + 1.25, { transform: 'rotate(-12deg) scale(.5)' }], [TL.logo + 1.8, { transform: 'rotate(-1.5deg) scale(1)' }, 'back']]);
-  fadeUp('.end-sub', TL.logo + 1.6, 0.7, 16);
+  fadeUp('.end-sub', TL.logo + 1.3, 0.7, 16);
   K('.btn', [[TL.button, { opacity: 0, transform: 'translateY(20px) scale(.9)' }], [TL.button + 0.6, { opacity: 1, transform: 'translateY(0px) scale(1)' }, 'back']]);
-  const hit = TL.music.finalHit;
+  // Halo du bouton qui respire sur chaque mesure, puis pulsation sur le dernier accent de la musique
+  const hit = TL.music.finalHit, bar = 4 * step;
+  const halo = [];
+  for (let t = TL.button + 0.6 + bar; t < hit - 0.2; t += bar)
+    halo.push([t, { boxShadow: '0 22px 40px -18px rgba(181,32,38,.85), 0 0 0 0px rgba(181,32,38,.35)' }],
+              [t + 0.6, { boxShadow: '0 22px 40px -18px rgba(181,32,38,.85), 0 0 0 18px rgba(181,32,38,0)' }, 'out']);
+  if (halo.length) K('.btn', halo);
   K('.btn', [[hit, { scale: '1' }], [hit + 0.12, { scale: '1.07' }, 'out'], [hit + 0.7, { scale: '1' }, 'inOut']]);
   K('.logo', [[hit, { scale: '1' }], [hit + 0.12, { scale: '1.08' }, 'out'], [hit + 0.7, { scale: '1' }, 'inOut']]);
   fadeUp('.end-web', TL.button + 0.4, 0.7, 10);

@@ -173,9 +173,10 @@
     sparks(fx, t, (tb) => (tb >= a && tb <= b ? pIntro.at(pIntro.len * span(tb, [a, b])) : null), { rate: 260, life: 0.75, speed: 430, gravity: 820, seed: 21, width: 2 });
   }
 
-  function hudFuseX(t) { return lerp(100, 1820, span(t, TL.fuse.hud)); }
+  const hudRun = [TL.fuse.hud, TL.zero]; // la mèche du bandeau brûle jusqu'au zéro du compte à rebours
+  function hudFuseX(t) { return lerp(100, 1820, span(t, hudRun)); }
   function drawHudFuse(t) {
-    const [a, b] = TL.fuse.hud; // b = zéro du compte à rebours : la mèche s'éteint
+    const [a, b] = hudRun; // à b, la mèche s'éteint
     const fadeOut = clamp((TL.iris[0] + 0.2 - t) / 0.3);
     if (t < a || fadeOut <= 0) return;
     const alpha = clamp((t - a) / 0.4) * fadeOut;
@@ -194,7 +195,7 @@
 
   /* Fumée : la mèche éteinte laisse un filet de fumée */
   function drawSmoke(t) {
-    const t0 = TL.fuse.hud[1];
+    const t0 = TL.zero;
     if (t < t0 || t > TL.iris[0] + 0.3) return;
     const fadeOut = clamp((TL.iris[0] + 0.3 - t) / 0.4);
     fx.save();
@@ -204,10 +205,10 @@
       const life = 1.8 + 1.0 * rnd(i, 1201);
       if (age > life) continue;
       const k = age / life;
-      const x = 1820 + (rnd(i, 1202) - 0.5) * 16 - age * (14 + 26 * rnd(i, 1203)) + Math.sin(age * 2.4 + i) * 12 * k;
-      const y = 990 - age * (55 + 45 * rnd(i, 1204));
-      const r = 14 + 70 * k;
-      const al = 0.13 * (1 - k) * (1 - k) * Math.min(1, age / 0.2) * fadeOut;
+      const x = 1820 + (rnd(i, 1202) - 0.5) * 60 - age * (10 + 34 * rnd(i, 1203)) + Math.sin(age * (1.6 + rnd(i, 1205)) + i) * 26 * k;
+      const y = 990 - age * (45 + 60 * rnd(i, 1204));
+      const r = 10 + 60 * k;
+      const al = 0.08 * (1 - k) * (1 - k) * Math.min(1, age / 0.2) * fadeOut;
       const g = fx.createRadialGradient(x, y, 0, x, y, r);
       g.addColorStop(0, `rgba(190,198,206,${al})`);
       g.addColorStop(1, 'rgba(190,198,206,0)');
@@ -269,7 +270,7 @@
   function drawEmbers(t) {
     const a = TL.scenes.countdown[0], z = TL.zero;
     if (t < a || t > z + 1.0) return;
-    const k = clamp((t - a) / 4) * clamp((z + 1.0 - t) / 1.0); // les braises s'éteignent avec la mèche
+    const kIn = clamp((t - a) / 4), fadeOut = clamp((z + 1.0 - t) / 1.0); // les braises s'éteignent avec la mèche
     fx.save();
     fx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 90; i++) {
@@ -278,7 +279,7 @@
       const age = ((t - t0) % life + life) % life;
       const x = rnd(i, 603) * W + Math.sin(age * 2 + i) * 24;
       const y = H + 20 - age * (150 + 160 * rnd(i, 604));
-      const al = Math.sin(Math.PI * age / life) * (0.25 + 0.6 * k);
+      const al = Math.sin(Math.PI * age / life) * (0.25 + 0.6 * kIn) * fadeOut;
       const r = 1.5 + 2.5 * rnd(i, 605);
       fx.fillStyle = `rgba(255,${Math.round(120 + 80 * rnd(i, 606))},40,${al})`;
       fx.beginPath(); fx.arc(x, y, r, 0, 7); fx.fill();

@@ -2,7 +2,7 @@
 //
 //   node scripts/render.mjs                      → vidéo complète (output/mission-association.mp4)
 //   node scripts/render.mjs --stills=4.5,22.6    → captures PNG dans output/stills/
-//   node scripts/render.mjs --from=20 --to=30    → extrait
+//   node scripts/render.mjs --from=20 --to=30    → extrait (output/extrait-20-30.mp4)
 //   options : --workers=3 --fps=30 --out=chemin.mp4 --audio=output/soundtrack.wav
 import { chromium } from 'playwright';
 import { spawnSync } from 'node:child_process';
@@ -55,6 +55,14 @@ try {
     const from = Number(args.from || 0), to = Math.min(Number(args.to || DUR), DUR);
     const first = Math.round(from * FPS), last = Math.round(to * FPS) - 1;
     const total = last - first + 1;
+    // Son : le WAV de soundtrack.py, sinon la version AAC versionnée ; muet seulement si --mute
+    const audio = [args.audio, 'output/soundtrack.wav', 'output/soundtrack.m4a']
+      .filter(Boolean).map((f) => path.resolve(root, f)).find((f) => fs.existsSync(f));
+    if (!audio && !args.mute) {
+      console.error('Bande-son introuvable : lancer « npm run soundtrack » (ou passer --mute).');
+      await browser.close();
+      process.exit(1);
+    }
     const frames = path.join(root, 'frames');
     fs.rmSync(frames, { recursive: true, force: true });
     fs.mkdirSync(frames, { recursive: true });
@@ -76,13 +84,14 @@ try {
     }));
     await browser.close();
 
-    const out = path.resolve(root, args.out || 'output/mission-association.mp4');
-    const audio = path.resolve(root, args.audio || 'output/soundtrack.wav');
+    // Un extrait (--from / --to) ne doit jamais écraser la vidéo livrée
+    const partial = args.from !== undefined || args.to !== undefined;
+    const out = path.resolve(root, args.out || (partial ? `output/extrait-${from}-${to}.mp4` : 'output/mission-association.mp4'));
     const ff = ['-y', '-framerate', String(FPS), '-i', path.join(frames, '%05d.jpg')];
-    if (fs.existsSync(audio) && !args.mute) ff.push('-ss', String(from), '-t', String(to - from), '-i', audio);
+    if (audio && !args.mute) ff.push('-ss', String(from), '-t', String(to - from), '-i', audio);
     ff.push('-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
       '-g', String(FPS * 2), '-movflags', '+faststart');
-    if (fs.existsSync(audio) && !args.mute) ff.push('-c:a', 'aac', '-b:a', '192k', '-shortest');
+    if (audio && !args.mute) ff.push('-c:a', 'aac', '-b:a', '192k', '-shortest');
     ff.push(out);
     console.log('ffmpeg', ff.join(' '));
     const r = spawnSync('ffmpeg', ff, { stdio: ['ignore', 'inherit', 'inherit'] });

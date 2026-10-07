@@ -6,7 +6,7 @@ mèche, frappe, verrouillages, impacts, tic-tac du compte à rebours, extinction
 ouverture en iris. Les bruitages restent non tonals (ou dans la gamme de mi mineur)
 pour ne pas entrer en conflit avec la musique.
 
-    python3 scripts/soundtrack.py            → output/soundtrack.wav (+ .m4a pour l'aperçu)
+    python3 scripts/soundtrack.py            → output/soundtrack.wav (+ .m4a et .ogg pour l'aperçu)
 """
 import json
 import pathlib
@@ -199,24 +199,25 @@ place(sfx, filt(noise(0.18), "band", (900, 6000)) * env_exp(0.18, 0.05), fi0 - 0
 place(sfx, whoosh(0.35, 800, 5000, 0.8), fi0 - 0.1, 0.25, -0.8)
 for k in range(16):
     a = fi0 + (fi1 - fi0) * k / 16
-    place(sfx, crackle((fi1 - fi0) / 16 + 0.05, 55, 1.0), a, 1.3, -0.9 + 1.8 * (k + 0.5) / 16)
+    place(sfx, crackle((fi1 - fi0) / 16 + 0.05, 55, 1.0), a, 0.9, -0.9 + 1.8 * (k + 0.5) / 16)
 h0 = SC["hello"][0]
 place(sfx, boom(2.0, 110, 30), h0 - 0.04, 0.6, verb=0.35)
 place(sfx, crash(2.0), h0 - 0.04, 0.15, verb=0.3)
 
 # Mèche du HUD : discrète, plus présente pendant le compte à rebours
-hh0, zero = TL["fuse"]["hud"]
+hh0, zero = TL["fuse"]["hud"], TL["zero"]
 cd0 = SC["countdown"][0]
 place(sfx, crackle(cd0 - hh0, 18, 1.0), hh0, 0.04, 0.3)
 place(sfx, crackle(zero - cd0, 70, 1.0), cd0, 0.35, 0.7)
 
 # Frappe au clavier
 for key, (t0, cps, nch) in TL["type"].items():
+    if key.startswith("hud_"):  # textes du bandeau : frappe rapide et discrète, un clic sur trois
+        for i in range(0, nch, 3):
+            place(sfx, key_click(0.4), t0 + i / cps, 0.3, 0.7 if key == "hud_br" else -0.7)
+        continue
     for i in range(nch):
-        place(sfx, key_click(0.7 + 0.3 * rng.random()), t0 + i / cps, 0.65, rng.uniform(-0.3, 0.3))
-for t0, n, pan in ((h0 + 0.1, 50, -0.7), (h0 + 0.25, 50, -0.7), (h0 + 0.3, 28, 0.7)):
-    for i in range(0, n, 3):
-        place(sfx, key_click(0.4), t0 + i / 75, 0.3, pan)
+        place(sfx, key_click(0.7 + 0.3 * rng.random()), t0 + i / cps, 0.55, rng.uniform(-0.3, 0.3))
 
 # Barre de déchiffrement
 b0, b1 = TL["bar"]
@@ -282,10 +283,12 @@ for j in range(int((zero - cd0) / (step / 2))):
 
 # Zéro : la mèche s'éteint, le message est corrigé, réponse positive
 place(sfx, fizzle(), zero, 0.8, 0.85, verb=0.2)
-place(sfx, whoosh(0.4, 5000, 600, 0.8), zero + 0.05, 0.3, 0.3)
-place(sfx, blip(E6, 0.09), zero + 0.25, 0.25, verb=0.3)
-place(sfx, blip(B6, 0.22), zero + 0.37, 0.25, verb=0.4)
-place(sfx, shimmer(1.0), TL["reply"] - 0.1, 0.45, verb=0.4)
+place(sfx, whoosh(0.32, 2500, 7000, 0.8), zero + 0.06, 0.3, -0.2)  # trait qui barre la phrase
+fix = TL["correct"]
+place(sfx, whoosh(0.4, 5000, 600, 0.8), fix - 0.1, 0.3, 0.3)
+place(sfx, blip(E6, 0.09), fix + 0.1, 0.25, verb=0.3)
+place(sfx, blip(B6, 0.22), fix + 0.22, 0.25, verb=0.4)
+place(sfx, shimmer(1.0), TL["reply"] - 0.1, 0.4, verb=0.4)
 
 # Ouverture en iris, logo, bouton
 iris0, iris1 = TL["iris"]
@@ -299,8 +302,11 @@ def load_music(path):
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "2", "-ar", str(SR), "-"],
                          capture_output=True, check=True).stdout
     m = np.frombuffer(raw, "<f4").reshape(-1, 2).astype(float)
+    # Décalage mesuré : sans lui, les attaques de la musique arrivent ~30 ms avant la grille de timeline.js
+    off = int(round(TL["music"]["offset"] * SR))
     out = np.zeros((N, 2))
-    out[: min(N, len(m))] = m[:N]
+    n = min(N - off, len(m))
+    out[off: off + n] = m[:n]
     return out
 
 
@@ -314,11 +320,13 @@ def gain_curve(points):
     return 10 ** (np.interp(tt, ts, db) / 20)
 
 
-# Respiration de la musique : légère baisse sous « Votre mission… » puis retour plein sur l'impact,
-# baisse pendant le compte à rebours pour faire entendre le tic-tac, retour au zéro.
+# Respiration de la musique : légère baisse sous « Votre mission… » (sur la mesure) puis retour plein
+# juste avant l'impact ; baisse pendant le compte à rebours pour faire entendre le tic-tac, retour au zéro.
+# Les remontées se terminent 20 ms avant l'attaque musicale pour ne pas l'écorner.
+rv0 = SC["reveal"][0]
 duck = gain_curve([
-    (0, 0), (vm0 - 0.2, 0), (vm0 + 0.5, -6), (slam - 0.03, -6), (slam, 0),
-    (cd0, 0), (cd0 + 0.6, -4), (zero - 0.03, -4), (zero, 0), (DUR, 0),
+    (0, 0), (rv0, 0), (rv0 + 0.857, -3.5), (slam - 0.08, -3.5), (slam - 0.02, 0),
+    (cd0, 0), (cd0 + 0.6, -4), (zero - 0.08, -4), (zero - 0.02, 0), (DUR, 0),
 ])
 music *= duck[:, None]
 
@@ -352,7 +360,7 @@ def loudness(x):
     return float(m["input_i"]), float(m["input_tp"])
 
 
-def limiter(x, ceiling_db=-1.5, look=0.004):
+def limiter(x, ceiling_db=-2.0, look=0.004):
     """Limiteur à anticipation : réduit seulement les crêtes au-dessus du plafond."""
     from scipy.ndimage import minimum_filter1d, uniform_filter1d
     c = 10 ** (ceiling_db / 20)
@@ -362,7 +370,7 @@ def limiter(x, ceiling_db=-1.5, look=0.004):
     return x * g[:, None]
 
 
-# Sonie cible −14 LUFS (réseaux sociaux), crêtes limitées à −1,5 dBFS
+# Sonie cible −14 LUFS (réseaux sociaux), crêtes limitées à −2 dBFS (crête vraie ≤ −1 dBTP)
 i_mix, _ = loudness(mix)
 mix *= 10 ** ((-14 - i_mix) / 20)
 mix = limiter(mix)
@@ -378,5 +386,6 @@ with wave.open(str(final), "wb") as w:
     w.writeframes((np.clip(mix, -1, 1) * 32767).astype("<i2").tobytes())
 # Version compressée pour l'aperçu navigateur (versionnée dans le dépôt)
 subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(final), "-c:a", "aac", "-b:a", "192k", str(out / "soundtrack.m4a")], check=True)
+subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(final), "-c:a", "libopus", "-b:a", "128k", str(out / "soundtrack.ogg")], check=True)
 print(f"sonie {i_mix:.1f} → {i_out:.1f} LUFS, crête vraie {tp_out:.1f} dBTP")
 print("→", final)

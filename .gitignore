@@ -3,3 +3,4 @@ frames/
 *.tmp.*
 output/stills/
 output/soundtrack.wav
+output/extrait-*.mp4

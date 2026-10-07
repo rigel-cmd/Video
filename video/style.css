@@ -54,7 +54,8 @@ em{font-style:normal}
 .hud-tr{right:100px;top:52px}
 .hud-bl{left:100px;top:1016px}
 .hud-br{right:100px;top:1016px}
-.rec{color:#FF4048;margin-right:6px}
+.rec{display:inline-block;width:9px;height:9px;margin:0 10px 1px 0;border-radius:50%;background:var(--rouge);box-shadow:0 0 0 3px rgba(181,32,38,.3),0 0 10px rgba(255,90,90,.6)}
+.rec.ok{background:var(--vert);box-shadow:0 0 0 3px rgba(142,195,63,.3),0 0 10px rgba(142,195,63,.6)}
 .tc{color:#fff;font-weight:700;margin-left:6px;font-variant-numeric:tabular-nums}
 
 /* 0 · Mise à feu */
@@ -85,7 +86,7 @@ em{font-style:normal}
 .radar{fill:none;stroke:rgba(255,255,255,.08);stroke-width:1.5;transform-box:view-box;transform-origin:330px 330px}
 .sweep{transform-box:view-box;transform-origin:330px 330px}
 .contour{fill:none;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
-.lake{fill:rgba(110,165,215,.28);stroke:rgba(150,195,235,.5);stroke-width:1.5;opacity:0}
+.lake{fill:rgba(201,212,220,.16);stroke:rgba(201,212,220,.45);stroke-width:1.5;opacity:0}
 .massif{font-family:"Poppins";font-weight:600;font-size:13px;letter-spacing:.24em;text-transform:uppercase;fill:rgba(201,212,220,.6);paint-order:stroke;stroke:#111D28;stroke-width:5px;opacity:0}
 .tgt .lock,.tgt .dot,.tgt .tlbl{transform-box:fill-box;transform-origin:center}
 .tgt .lock{transform-box:view-box;transform-origin:0 0}
@@ -98,7 +99,7 @@ em{font-style:normal}
 .vm2{display:block;margin-top:18px;font-family:"Poppins";font-weight:600;font-size:52px;color:var(--orange)}
 .reveal{left:0;right:0;top:205px;text-align:center}
 .pill{display:inline-flex;align-items:center;gap:14px;padding:12px 26px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);font-family:"Poppins";font-weight:700;font-size:22px;letter-spacing:.06em;color:#fff}
-.pill .dot{width:10px;height:10px;border-radius:50%;background:#FF4048;box-shadow:0 0 0 5px rgba(255,64,72,.22)}
+.pill .dot{width:10px;height:10px;border-radius:50%;background:var(--rouge);box-shadow:0 0 0 5px rgba(181,32,38,.35),0 0 10px rgba(255,90,90,.5)}
 .mega{margin-top:34px;font-size:128px;line-height:1.08}
 .mega .l1{display:block}
 .mega .l2{display:inline-block;margin-top:12px;padding:0 .22em .05em;border-radius:.14em;background:var(--rouge);color:#fff}
@@ -129,14 +130,14 @@ em{font-style:normal}
 .photo svg{position:absolute;inset:0;width:100%;height:100%}
 .photo .q{position:absolute;left:0;right:0;top:30px;text-align:center;font-family:"Poppins";font-weight:800;font-size:92px;line-height:1;color:var(--orange)}
 .scanbar{position:absolute;left:0;right:0;top:0;height:3px;background:var(--orange);box-shadow:0 0 18px 4px rgba(252,175,25,.7)}
-.mini{display:block;font-family:"Poppins";font-weight:700;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--texte-doux)}
+.mini{display:block;font-family:"Poppins";font-weight:700;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--texte-doux)}
 .id-name{margin:4px 0 16px;font-family:"Poppins";font-weight:800;font-size:58px;line-height:1.05;letter-spacing:-.02em;color:var(--ardoise-fonce)}
 .id-wait{margin-top:4px;font-family:"Poppins";font-weight:600;font-size:20px;line-height:1.3;color:rgba(91,103,112,.75)}
 .stamp{position:absolute;left:204px;top:128px;padding:4px 18px 6px;border:5px solid var(--rouge);border-radius:12px;color:var(--rouge);font-family:"Poppins";font-weight:800;font-size:34px;line-height:1.2;letter-spacing:.08em;text-transform:uppercase;mix-blend-mode:multiply;opacity:0}
 .fields{padding:20px 30px 0}
 .fields li{padding:11px 0;border-top:1px solid rgba(48,72,89,.15)}
 .fields strong{display:block;margin-top:3px;font-family:"Poppins";font-weight:700;font-size:23px;line-height:1.3;color:var(--ardoise-fonce)}
-.fields .d{display:block;font-size:17px;line-height:1.4;color:var(--texte-doux)}
+.fields .d{display:block;font-size:19px;line-height:1.4;color:var(--texte-doux)}
 .col-r{left:820px;top:290px;width:990px}
 .lbl{font-family:"Poppins";font-weight:700;font-size:17px;letter-spacing:.24em;text-transform:uppercase;color:var(--doux)}
 .skills{margin-top:12px}
@@ -148,7 +149,7 @@ em{font-style:normal}
 .lbl-2{margin-top:34px}
 .quals{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
 .quals li{padding:10px 20px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-family:"Poppins";font-weight:600;font-size:21px;color:#fff}
-.note{margin-top:30px;font-size:21px;line-height:1.5;color:var(--clair)}
+.note{margin-top:30px;font-size:21px;line-height:1.5;color:var(--clair);text-wrap:balance}
 .note b{font-family:"Poppins";font-weight:700;color:var(--orange)}
 
 /* 6 · Candidater */
@@ -164,7 +165,7 @@ em{font-style:normal}
 .cd-top{left:0;right:0;top:150px;height:80px;font-family:"Poppins";font-weight:700;font-size:58px;line-height:80px;letter-spacing:-.01em;color:#fff}
 .cd-a,.cd-b{position:absolute;left:0;right:0;text-align:center}
 .cd-txt{position:relative;display:inline-block}
-.strike{position:absolute;left:-2%;top:50%;width:104%;height:7px;margin-top:-2px;border-radius:4px;background:#FF4048;box-shadow:0 0 18px rgba(255,64,72,.7);transform-origin:left center;transform:scaleX(0)}
+.strike{position:absolute;left:-2%;top:50%;width:104%;height:7px;margin-top:-2px;border-radius:4px;background:var(--rouge);box-shadow:0 0 0 1.5px rgba(255,110,110,.55),0 0 18px rgba(255,80,80,.6);transform-origin:left center;transform:scaleX(0)}
 .cd-b{opacity:0}
 .cd-b em{color:var(--vert)}
 .ring{left:710px;top:290px;width:500px;height:500px;overflow:visible}
