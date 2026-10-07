@@ -151,32 +151,7 @@ em{font-style:normal}
 .note{margin-top:30px;font-size:21px;line-height:1.5;color:var(--clair)}
 .note b{font-family:"Poppins";font-weight:700;color:var(--orange)}
 
-/* 6 · Ce que nous offrons */
-.node{position:absolute;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:3px solid rgba(252,175,25,.6);background:var(--nuit)}
-.node::after{content:"";position:absolute;inset:14px;border-radius:50%;background:rgba(252,175,25,.35)}
-.node-lbl{position:absolute;width:460px;margin-left:-230px;text-align:center;font-family:"Poppins";font-weight:700;font-size:28px;color:#fff}
-.node-lbl small{display:block;margin-top:4px;font-family:"Open Sans";font-weight:400;font-size:20px;color:var(--clair)}
-.o-rule{left:110px;width:1700px;height:1px;background:rgba(255,255,255,.14);transform-origin:left center}
-.o-rule-1{top:540px}
-.o-rule-2{top:742px}
-.stats{left:110px;top:540px;width:1700px;height:202px;display:grid;grid-template-columns:1fr 1fr;align-items:center}
-.stats li{display:flex;align-items:center;gap:30px;padding-right:40px}
-.stats li+li{padding:0 0 0 50px;border-left:1px solid rgba(255,255,255,.14);height:120px}
-.stats .val{flex:none;font-family:"Poppins";font-weight:800;font-size:76px;line-height:1;letter-spacing:-.025em;color:var(--orange);font-variant-numeric:tabular-nums}
-.stats .txt{font-size:22px;line-height:1.45;color:var(--clair)}
-.atouts{left:110px;top:780px;width:1700px;display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
-.atouts li{display:flex;gap:18px;align-items:flex-start}
-.atouts svg{flex:none;width:44px;height:44px;color:var(--orange)}
-.atouts strong{display:block;font-family:"Poppins";font-weight:700;font-size:26px;color:#fff}
-.atouts span{display:block;margin-top:2px;font-size:20px;line-height:1.4;color:var(--clair)}
-
-/* 7 · Protocole */
-.pnode{position:absolute;top:540px;width:128px;height:128px;margin:-64px 0 0 -64px;display:grid;place-items:center;border-radius:50%;border:3px solid var(--rouge);background:var(--nuit);font-family:"Poppins";font-weight:800;font-size:52px;color:#fff;line-height:1}
-.pnode-lbl{position:absolute;top:630px;width:360px;margin-left:-180px;text-align:center;font-family:"Poppins";font-weight:700;font-size:30px;color:#fff}
-.pnode-lbl small{display:block;margin-top:2px;font-family:"Open Sans";font-weight:400;font-size:21px;color:var(--clair)}
-.p-cap{left:0;right:0;top:800px;text-align:center;font-size:28px;color:var(--clair)}
-
-/* 8 · Candidater */
+/* 6 · Candidater */
 .contact{left:0;right:0;top:205px;text-align:center}
 .contact .h{margin-top:22px;font-size:84px}
 .mailbox{display:inline-flex;align-items:center;gap:26px;margin-top:56px;padding:26px 50px;border-radius:24px;border:2px solid rgba(252,175,25,.7);background:rgba(252,175,25,.07);box-shadow:0 0 60px -10px rgba(252,175,25,.35)}
@@ -184,17 +159,32 @@ em{font-style:normal}
 .mail{font-family:"Poppins";font-weight:700;font-size:54px;letter-spacing:-.01em;color:#fff}
 .contact .lead{margin-top:46px}
 
-/* 9 · Autodestruction */
+/* 7 · Compte à rebours… sans autodestruction */
 .alarm{inset:0;background:radial-gradient(75% 75% at 50% 50%,rgba(181,32,38,0) 25%,rgba(181,32,38,.6) 100%);opacity:0}
-.cd-top{left:0;right:0;top:150px;text-align:center;font-family:"Poppins";font-weight:700;font-size:58px;letter-spacing:-.01em;color:#fff}
+.cd-top{left:0;right:0;top:150px;height:80px;font-family:"Poppins";font-weight:700;font-size:58px;line-height:80px;letter-spacing:-.01em;color:#fff}
+.cd-a,.cd-b{position:absolute;left:0;right:0;text-align:center}
+.cd-txt{position:relative;display:inline-block}
+.strike{position:absolute;left:-2%;top:50%;width:104%;height:7px;margin-top:-2px;border-radius:4px;background:#FF4048;box-shadow:0 0 18px rgba(255,64,72,.7);transform-origin:left center;transform:scaleX(0)}
+.cd-b{opacity:0}
+.cd-b em{color:var(--vert)}
 .ring{left:710px;top:290px;width:500px;height:500px;overflow:visible}
 .ticks line{stroke:rgba(255,255,255,.22);stroke-width:2}
 .digits{left:710px;top:290px;width:500px;height:500px}
 .digit{position:absolute;inset:0;display:grid;place-items:center;padding-top:28px;font-family:"Poppins";font-weight:800;font-size:330px;line-height:1;color:#fff;text-shadow:0 0 60px rgba(255,64,72,.6);opacity:0}
-.cd-bot{left:0;right:0;top:830px;text-align:center;font-family:"Poppins";font-weight:700;font-size:30px;letter-spacing:.42em;text-transform:uppercase;color:var(--clair)}
+.cd-ok{position:absolute;inset:92px;display:grid;place-items:center;border-radius:50%;background:var(--vert);box-shadow:0 0 80px rgba(142,195,63,.45);opacity:0}
+.cd-ok svg{width:190px;height:190px;overflow:visible}
+.ok-path{fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.cd-bot{left:0;right:0;top:822px;height:70px;text-align:center}
+.cd-sec,.cd-rep{position:absolute;left:0;right:0;text-align:center}
+.cd-sec{top:8px;font-family:"Poppins";font-weight:700;font-size:30px;letter-spacing:.42em;text-transform:uppercase;color:var(--clair)}
+.cd-rep{font-family:"Poppins";font-weight:800;font-size:50px;letter-spacing:-.015em;color:#fff;opacity:0}
+.cd-rep em{color:var(--orange)}
+.iris-ring{left:960px;top:540px;width:0;height:0;border-radius:50%;opacity:0;pointer-events:none}
+.iris-ring::after{content:"";position:absolute;left:-1150px;top:-1150px;width:2300px;height:2300px;border-radius:50%;box-sizing:border-box;border:10px solid var(--orange);box-shadow:0 0 50px rgba(252,175,25,.55)}
+.tc.ok{color:var(--vert)}
 
-/* 10 · Signature */
-#s-end{background:var(--creme)}
+/* 8 · Signature */
+#s-end{background:var(--creme);clip-path:circle(0px at 960px 540px)}
 .end{left:0;right:0;top:150px;text-align:center;color:var(--ardoise-fonce)}
 .logo{display:block;width:216px;height:145px;margin:0 auto;overflow:visible}
 .leaf-o,.leaf-r{transform-box:fill-box;transform-origin:center}

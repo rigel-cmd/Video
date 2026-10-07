@@ -1,4 +1,4 @@
-/* Effets dessinés au canvas : mèches et étincelles, flashs, glitchs, combustion finale.
+/* Effets dessinés au canvas : mèches et étincelles, fumée, flashs, glitchs.
    Tout est calculé sans état à partir de t, pour que chaque image soit reproductible. */
 (function () {
   const { on, rnd, clamp, lerp, $ } = Engine;
@@ -153,17 +153,15 @@
   /* ———— Mèches de la vidéo ———— */
   const pIntro = new Path([[90, 872], [230, 850], [350, 760], [480, 650], [640, 615], [800, 690], [930, 815], [1100, 858], [1260, 760], [1385, 645], [1540, 606], [1700, 680], [1830, 770], [2000, 790]]);
   const pHud = new Path([[100, 996], [1820, 996]]);
-  const pOffre = new Path([[330, 370], [1590, 370]]);
-  const pProto = new Path([[330, 540], [1590, 540]]);
   const span = (t, [a, b]) => clamp((t - a) / (b - a));
 
   function drawIntro(t) {
     const [a, b] = TL.fuse.intro;
-    if (t > 5.2) return;
+    if (t > b + 0.3) return;
     const s = pIntro.len * span(t, [a, b]);
     const vis = clamp(t / 0.35);
     rope(fx, pIntro, s, pIntro.len, 6, vis);
-    burnt(fx, pIntro, 0, s, 6, vis * clamp(1 - (t - 4.6) / 0.4));
+    burnt(fx, pIntro, 0, s, 6, vis * clamp(1 - (t - (b - 0.3)) / 0.4));
     if (t >= a - 0.08 && t <= b + 0.05) {
       const h = pIntro.at(s);
       ember(fx, pIntro, s, 90, 1.2);
@@ -177,43 +175,46 @@
 
   function hudFuseX(t) { return lerp(100, 1820, span(t, TL.fuse.hud)); }
   function drawHudFuse(t) {
-    const [a, b] = TL.fuse.hud;
-    if (t < a || t > b + 0.1) return;
-    const alpha = clamp((t - a) / 0.4);
+    const [a, b] = TL.fuse.hud; // b = zéro du compte à rebours : la mèche s'éteint
+    const fadeOut = clamp((TL.iris[0] + 0.2 - t) / 0.3);
+    if (t < a || fadeOut <= 0) return;
+    const alpha = clamp((t - a) / 0.4) * fadeOut;
     const s = hudFuseX(t) - 100;
     const cd = clamp((t - TL.scenes.countdown[0]) / 1.5); // la mèche grossit pendant le compte à rebours
     rope(fx, pHud, s, pHud.len, 3 + 1.5 * cd, alpha * 0.9);
     burnt(fx, pHud, 0, s, 3, alpha * 0.5);
-    if (t < b) {
-      ember(fx, pHud, s, 50, 0.6 + 0.5 * cd);
-      head(fx, 100 + s, 996, t, (0.5 + 0.55 * cd) * alpha);
+    const out = clamp((t - b) / 0.35); // 0 → 1 : la flamme s'étouffe
+    if (out < 1) {
+      ember(fx, pHud, s, 50, (0.6 + 0.5 * cd) * (1 - out));
+      head(fx, 100 + s, 996, t, (0.5 + 0.55 * cd) * alpha * (1 - out));
     }
     sparks(fx, t, (tb) => (tb >= a + 0.3 && tb < b ? { x: hudFuseX(tb), y: 996 } : null),
       { rate: 50 + 160 * cd, life: 0.5 + 0.25 * cd, speed: 170 + 260 * cd, gravity: 700, seed: 31, width: 1.4 + 0.8 * cd, alpha: alpha });
   }
 
-  // Mèche entre des nœuds (DOM) : la mèche n'est visible qu'entre les cercles
-  function nodeFuse(t, path, run, nodes, radius, vis, seed) {
-    if (vis <= 0) return;
-    const [a, b] = run;
-    const x0 = path.p[0][0], y = path.p[0][1];
-    const sHead = path.len * span(t, run);
-    const gaps = [];
-    for (let i = 0; i < nodes.length - 1; i++) gaps.push([nodes[i] + radius - x0, nodes[i + 1] - radius - x0]);
-    const inGap = (s) => gaps.some(([g0, g1]) => s > g0 && s < g1);
-    for (const [g0, g1] of gaps) {
-      rope(fx, path, Math.max(g0, sHead), g1, 5, vis);
-      burnt(fx, path, g0, Math.min(g1, sHead), 5, vis);
+  /* Fumée : la mèche éteinte laisse un filet de fumée */
+  function drawSmoke(t) {
+    const t0 = TL.fuse.hud[1];
+    if (t < t0 || t > TL.iris[0] + 0.3) return;
+    const fadeOut = clamp((TL.iris[0] + 0.3 - t) / 0.4);
+    fx.save();
+    for (let i = 0; i < 40; i++) {
+      const born = t0 + i * 0.06, age = t - born;
+      if (age < 0) continue;
+      const life = 1.8 + 1.0 * rnd(i, 1201);
+      if (age > life) continue;
+      const k = age / life;
+      const x = 1820 + (rnd(i, 1202) - 0.5) * 16 - age * (14 + 26 * rnd(i, 1203)) + Math.sin(age * 2.4 + i) * 12 * k;
+      const y = 990 - age * (55 + 45 * rnd(i, 1204));
+      const r = 14 + 70 * k;
+      const al = 0.13 * (1 - k) * (1 - k) * Math.min(1, age / 0.2) * fadeOut;
+      const g = fx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(190,198,206,${al})`);
+      g.addColorStop(1, 'rgba(190,198,206,0)');
+      fx.fillStyle = g;
+      fx.beginPath(); fx.arc(x, y, r, 0, 7); fx.fill();
     }
-    if (t >= a && t <= b && inGap(sHead)) {
-      ember(fx, path, sHead, 40, 0.9);
-      head(fx, x0 + sHead, y, t, 0.95);
-    }
-    sparks(fx, t, (tb) => {
-      if (tb < a || tb > b) return null;
-      const s = path.len * span(tb, run);
-      return inGap(s) ? { x: x0 + s, y } : null;
-    }, { rate: 220, life: 0.6, speed: 380, gravity: 850, seed, width: 2 });
+    fx.restore();
   }
 
   /* ———— Flashs, glitchs, secousses ———— */
@@ -264,77 +265,11 @@
     return g;
   }
 
-  /* ———— Combustion finale (révèle la carte de fin) ———— */
-  const BW = 480, BH = 270;
-  const burnField = new Float32Array(BW * BH);
-  (function () {
-    const vn = (x, y, s) => {
-      const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
-      const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-      const h = (i, j) => rnd(i * 7919 + j * 104729, s);
-      return lerp(lerp(h(xi, yi), h(xi + 1, yi), u), lerp(h(xi, yi + 1), h(xi + 1, yi + 1), u), v);
-    };
-    let mn = 1e9, mx = -1e9;
-    for (let y = 0; y < BH; y++) for (let x = 0; x < BW; x++) {
-      const n = 0.5 * vn(x / 44, y / 44, 1) + 0.3 * vn(x / 18, y / 18, 2) + 0.2 * vn(x / 7, y / 7, 3);
-      const d = Math.hypot((x - BW / 2) / (BW / 2), (y - BH / 2) / (BH / 2)) / Math.SQRT2;
-      const v = 0.6 * d + 0.4 * n;
-      burnField[y * BW + x] = v;
-      mn = Math.min(mn, v); mx = Math.max(mx, v);
-    }
-    for (let i = 0; i < burnField.length; i++) burnField[i] = (burnField[i] - mn) / (mx - mn);
-  })();
-  const burnCv = document.createElement('canvas');
-  burnCv.width = BW; burnCv.height = BH;
-  const burnCtx = burnCv.getContext('2d');
-  const burnImg = burnCtx.createImageData(BW, BH);
-  const glowCv = document.createElement('canvas');
-  glowCv.width = BW; glowCv.height = BH;
-  const glowCtx = glowCv.getContext('2d');
-  const glowImg = glowCtx.createImageData(BW, BH);
-  const sstep = (a, b, x) => { const k = clamp((x - a) / (b - a)); return k * k * (3 - 2 * k); };
-  function drawBurn(t) {
-    const [a, b] = TL.burn;
-    if (t < TL.explosion || t > b + 0.1) return;
-    const p = lerp(-0.06, 1.16, Math.pow(span(t, [a, b]), 0.8));
-    const e1 = 0.07, e2 = 0.05;
-    const d = burnImg.data, gd = glowImg.data;
-    for (let i = 0; i < burnField.length; i++) {
-      const dv = burnField[i] - p; // > 0 : pas encore brûlé
-      let r = 11, g = 19, bl = 27, al = 1, ga = 0;
-      if (dv < 0) {
-        const k = clamp(-dv / e1); // 0 = front de flamme, 1 = cendre
-        r = 255; g = Math.round(lerp(210, 60, k)); bl = Math.round(lerp(90, 8, k));
-        al = 1 - sstep(0.55, 1, k);
-        ga = (1 - k) * (1 - k);
-      } else if (dv < e2) {
-        const k = dv / e2;
-        r = Math.round(lerp(70, 11, k)); g = Math.round(lerp(30, 19, k)); bl = Math.round(lerp(12, 27, k));
-        ga = 0.35 * (1 - k);
-      }
-      d[i * 4] = r; d[i * 4 + 1] = g; d[i * 4 + 2] = bl; d[i * 4 + 3] = Math.round(al * 255);
-      gd[i * 4] = 255; gd[i * 4 + 1] = 140; gd[i * 4 + 2] = 30; gd[i * 4 + 3] = Math.round(ga * 255);
-    }
-    burnCtx.putImageData(burnImg, 0, 0);
-    glowCtx.putImageData(glowImg, 0, 0);
-    fx.save();
-    fx.imageSmoothingEnabled = true;
-    fx.imageSmoothingQuality = 'high';
-    fx.drawImage(burnCv, 0, 0, W, H);
-    fx.globalCompositeOperation = 'lighter';
-    fx.filter = 'blur(14px)';
-    fx.drawImage(glowCv, 0, 0, W, H);
-    fx.filter = 'blur(3px)';
-    fx.globalAlpha = 0.8;
-    fx.drawImage(glowCv, 0, 0, W, H);
-    fx.restore();
-  }
-
   /* ———— Braises du compte à rebours ———— */
   function drawEmbers(t) {
-    const [a, b] = TL.scenes.countdown;
-    if (t < a || t > b + 0.2) return;
-    const k = clamp((t - a) / 4);
+    const a = TL.scenes.countdown[0], z = TL.zero;
+    if (t < a || t > z + 1.0) return;
+    const k = clamp((t - a) / 4) * clamp((z + 1.0 - t) / 1.0); // les braises s'éteignent avec la mèche
     fx.save();
     fx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 90; i++) {
@@ -364,8 +299,8 @@
   })();
   function drawBg(t) {
     bg.clearRect(0, 0, W, H);
-    if (t >= TL.explosion) return;
-    const intro = clamp((t - 4.9) / 0.5);
+    if (t >= TL.iris[1]) return;
+    const intro = clamp((t - (TL.scenes.hello[0] - 0.1)) / 0.5);
     bg.globalAlpha = intro;
     const o = (t * 7) % 80;
     bg.drawImage(grid, -o, -o * 0.5);
@@ -385,11 +320,8 @@
     drawBg(t);
     drawIntro(t);
     drawHudFuse(t);
-    const so = TL.scenes.offre, sp = TL.scenes.proto;
-    nodeFuse(t, pOffre, TL.fuse.offre, [330, 960, 1590], 31, clamp((t - 51.9) / 0.4) * clamp((so[1] - t) / 0.3), 41);
-    nodeFuse(t, pProto, TL.fuse.proto, [330, 750, 1170, 1590], 66, clamp((t - 60.5) / 0.4) * clamp((sp[1] - t) / 0.25), 51);
+    drawSmoke(t);
     drawEmbers(t);
-    drawBurn(t);
     const g = camera(t);
     if (g > 0) drawGlitchBands(t, g);
     drawFlashes(t);
