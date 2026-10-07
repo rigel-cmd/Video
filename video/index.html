@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mission : association</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="viewport">
+<div id="stage">
+  <canvas id="bg" width="1920" height="1080"></canvas>
+
+  <div id="cam">
+
+    <!-- 0 · Mise à feu -->
+    <section class="scene" id="s-intro">
+      <div class="abs intro">
+        <p class="intro-1">Victimes &amp; Préjudices Avocats</p>
+        <p class="intro-2">présente</p>
+      </div>
+    </section>
+
+    <!-- 1 · Transmission -->
+    <section class="scene" id="s-hello">
+      <div class="abs term">
+        <p class="tl"><b>›</b><span>Canal sécurisé établi</span></p>
+        <p class="tl"><b>›</b><span>Déchiffrement du message</span><i class="bar"><i></i></i><em id="pct">0&nbsp;%</em></p>
+        <p class="tl"><b>›</b><span>Destinataire&nbsp;: avocat(e) expérimenté(e)</span></p>
+      </div>
+      <h1 class="abs hello T">Bonjour, Maître.</h1>
+    </section>
+
+    <!-- 2 · Le cabinet -->
+    <section class="scene" id="s-cabinet">
+      <div class="abs col-l">
+        <p class="sur">01 — Le cabinet</p>
+        <h2 class="h T"><span class="line"><span>Victimes &amp;</span></span><span class="line"><span>Préjudices Avocats</span></span></h2>
+        <p class="lead">Un cabinet grenoblois et annecien <strong>exclusivement dédié à la défense des victimes</strong>, jusqu’à leur complète indemnisation.</p>
+        <ul class="tags">
+          <li>Accidents de la route</li>
+          <li>Responsabilité médicale</li>
+          <li>Accidents corporels et maladies du travail</li>
+          <li>Accidents de la vie</li>
+          <li>Droit pénal des victimes</li>
+        </ul>
+      </div>
+      <div class="abs map">
+        <svg viewBox="0 0 660 660" aria-hidden="true">
+          <defs>
+            <linearGradient id="sw" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#FCAF19" stop-opacity="0"/>
+              <stop offset="1" stop-color="#FCAF19" stop-opacity=".22"/>
+            </linearGradient>
+            <clipPath id="c-map"><rect x="4" y="4" width="652" height="652"/></clipPath>
+            <mask id="m-link"><path class="link-mask" d="M240 470 Q 250 300 430 180" fill="none" stroke="#fff" stroke-width="8" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></mask>
+          </defs>
+          <g class="map-frame">
+            <path d="M2 40V2h38M620 2h38v38M658 620v38h-38M40 658H2v-38" fill="none" stroke="#FCAF19" stroke-width="3"/>
+            <text x="22" y="34" class="map-lbl">Zone d’intervention</text>
+          </g>
+          <g class="radar">
+            <circle cx="330" cy="330" r="80"/><circle cx="330" cy="330" r="160"/><circle cx="330" cy="330" r="240"/><circle cx="330" cy="330" r="318"/>
+            <path d="M330 12V648M12 330H648"/>
+          </g>
+          <g class="sweep"><path d="M330 330 L330 12 A318 318 0 0 1 555 105 Z" fill="url(#sw)"/></g>
+          <g class="topo" clip-path="url(#c-map)"></g>
+          <ellipse class="lake" cx="446" cy="222" rx="8" ry="30" transform="rotate(-18 446 222)"/>
+          <text class="massif" x="118" y="600">Vercors</text>
+          <text class="massif" x="262" y="346">Chartreuse</text>
+          <text class="massif" x="428" y="520">Belledonne</text>
+          <text class="massif" x="470" y="318">Bauges</text>
+          <path d="M240 470 Q 250 300 430 180" fill="none" stroke="#FCAF19" stroke-width="3" stroke-dasharray="9 9" mask="url(#m-link)"/>
+          <g class="tgt" id="tg-gre" transform="translate(240 470)">
+            <g class="lock"><circle r="22" fill="none" stroke="#FCAF19" stroke-width="2.5"/><path d="M0 -34V-24M0 24V34M-34 0H-24M24 0H34" stroke="#FCAF19" stroke-width="2.5"/></g>
+            <circle class="dot" r="9" fill="#B52026" stroke="#fff" stroke-width="3"/>
+            <g class="tlbl"><text x="-46" y="-6" class="city" text-anchor="end">Grenoble</text><text x="-46" y="18" class="coord" text-anchor="end">45°11′N · 5°43′E</text></g>
+          </g>
+          <g class="tgt" id="tg-ann" transform="translate(430 180)">
+            <g class="lock"><circle r="22" fill="none" stroke="#FCAF19" stroke-width="2.5"/><path d="M0 -34V-24M0 24V34M-34 0H-24M24 0H34" stroke="#FCAF19" stroke-width="2.5"/></g>
+            <circle class="dot" r="9" fill="#B52026" stroke="#fff" stroke-width="3"/>
+            <g class="tlbl"><text x="-46" y="-6" class="city" text-anchor="end">Annecy</text><text x="-46" y="18" class="coord" text-anchor="end">45°54′N · 6°07′E</text></g>
+          </g>
+          <text x="330" y="636" class="map-cap" text-anchor="middle">2 cabinets · au cœur des Alpes</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 3 · Votre mission -->
+    <section class="scene" id="s-reveal">
+      <div class="abs vm"><span class="vm1 T">Votre mission,</span><span class="vm2">si vous l’acceptez…</span></div>
+      <div class="abs reveal">
+        <p class="pill"><span class="dot"></span>Offre d’emploi · CDI · Grenoble</p>
+        <h2 class="h mega T"><span class="l1">Avocat(e) associé(e)</span><span class="l2">salarié(e)</span></h2>
+        <div class="marker">Perspective rapide d’association</div>
+        <p class="lead">Nous recherchons un(e) avocat(e) au <strong>fort leadership</strong>, capable de prendre à terme <strong>le&nbsp;relais dans l’animation du cabinet</strong>.</p>
+      </div>
+    </section>
+
+    <!-- 4 · Missions -->
+    <section class="scene" id="s-missions">
+      <div class="abs hdr">
+        <p class="sur">02 — Vos missions</p>
+        <h2 class="h T"><span class="line"><span>De la consultation <em>à l’indemnisation</em></span></span></h2>
+      </div>
+      <p class="abs count">Objectif<b id="m-count">01</b><span class="of">/ 08</span></p>
+      <ol class="cards">
+        <li class="card"><span class="num">01</span><h4>Piloter</h4><p>un portefeuille de dossiers jusqu’à l’indemnisation définitive</p></li>
+        <li class="card"><span class="num">02</span><h4>Construire</h4><p>des stratégies d’indemnisation sur mesure&nbsp;: pièces, évaluation, chiffrage</p></li>
+        <li class="card"><span class="num">03</span><h4>Rédiger</h4><p>assignations, conclusions, consultations, notes de synthèse</p></li>
+        <li class="card"><span class="num">04</span><h4>Préparer et conduire</h4><p>les expertises médicales amiables et judiciaires</p></li>
+        <li class="card"><span class="num">05</span><h4>Plaider</h4><p>devant les juridictions civiles, administratives et pénales</p></li>
+        <li class="card"><span class="num">06</span><h4>Porter la relation client</h4><p>auprès des victimes et de leurs proches, à chaque étape</p></li>
+        <li class="card"><span class="num">07</span><h4>Développer</h4><p>prescripteurs, visibilité, relations presse, nouveaux axes</p></li>
+        <li class="card"><span class="num">08</span><h4>Faire évoluer</h4><p>nos méthodes&nbsp;: process, outils numériques, intelligence artificielle</p></li>
+      </ol>
+      <div class="abs grid-sweep"></div>
+    </section>
+
+    <!-- 5 · Profil -->
+    <section class="scene" id="s-profil">
+      <div class="abs hdr">
+        <p class="sur">03 — Profil recherché</p>
+        <h2 class="h T"><span class="line"><span>Un projet <em>d’association</em>&nbsp;?</span></span></h2>
+      </div>
+      <div class="abs idcard">
+        <div class="id-band"><span>Fiche agent</span><small>Dossier VP-38</small></div>
+        <div class="id-top">
+          <div class="photo">
+            <svg viewBox="0 0 150 184" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.08)"><path d="M0 46H150M0 92H150M0 138H150M50 0V184M100 0V184"/></g><circle cx="75" cy="70" r="32" fill="rgba(255,255,255,.16)"/><path d="M14 184c4-46 30-72 61-72s57 26 61 72z" fill="rgba(255,255,255,.16)"/></svg>
+            <span class="q">?</span>
+            <i class="scanbar"></i>
+          </div>
+          <div class="id-who">
+            <span class="mini">Nom de code</span>
+            <p class="id-name">Vous&nbsp;?</p>
+            <span class="mini">Statut</span>
+            <p class="id-wait">en attente de validation…</p>
+          </div>
+          <div class="stamp">Recherché(e)</div>
+        </div>
+        <ul class="fields">
+          <li><span class="mini">Formation</span><strong>CAPA</strong><span class="d">Certificat d’aptitude à la profession d’avocat</span></li>
+          <li><span class="mini">Expérience</span><strong>5&nbsp;ans minimum en cabinet</strong><span class="d">contentieux et relation client</span></li>
+          <li><span class="mini">Un plus</span><strong>Spécialisation</strong><span class="d">dommage corporel, droit de la santé ou corporel du travail</span></li>
+        </ul>
+      </div>
+      <div class="abs col-r">
+        <p class="lbl lbl-1">Compétences techniques</p>
+        <ul class="skills">
+          <li><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><p><strong>Responsabilité civile</strong><span class="d">mécanismes d’indemnisation</span></p></li>
+          <li><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><p><strong>Actes et plaidoirie</strong><span class="d">à l’écrit comme à l’audience</span></p></li>
+          <li><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><p><strong>Pièces médicales</strong><span class="d">dialogue avec les experts</span></p></li>
+          <li><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><p><strong>Numérique et IA</strong><span class="d">appétence pour l’innovation juridique</span></p></li>
+        </ul>
+        <p class="lbl lbl-2">Qualités personnelles</p>
+        <ul class="quals">
+          <li>Leadership</li><li>Esprit entrepreneurial</li><li>Excellente communication</li><li>Sens de la relation client</li><li>Autonomie et rigueur</li><li>Sens du collectif</li>
+        </ul>
+        <p class="note"><b>À défaut</b> de spécialisation, votre capacité à vous approprier la matière et à prendre le relais compte davantage.</p>
+      </div>
+    </section>
+
+    <!-- 6 · Ce que nous offrons -->
+    <section class="scene" id="s-offre">
+      <div class="abs hdr">
+        <p class="sur">04 — Ce que nous vous offrons</p>
+        <h2 class="h T"><span class="line"><span>Une perspective <em>d’association</em></span></span></h2>
+      </div>
+      <div class="o-nodes">
+        <i class="node" style="left:330px;top:370px"></i>
+        <i class="node" style="left:960px;top:370px"></i>
+        <i class="node node-end" style="left:1590px;top:370px"></i>
+        <p class="node-lbl" style="left:330px;top:412px">Avocat(e) salarié(e)<small>CDI · statut cadre</small></p>
+        <p class="node-lbl" style="left:960px;top:412px">Responsabilités<small>prises en charge progressivement</small></p>
+        <p class="node-lbl" style="left:1590px;top:412px">Associé(e)<small>une ambition à la hauteur de la vôtre</small></p>
+      </div>
+      <i class="abs o-rule o-rule-1"></i>
+      <ul class="abs stats">
+        <li><span class="val"><b id="o-218">218</b>&nbsp;jours</span><span class="txt">CDI, statut cadre, forfait annuel&nbsp;; rémunération fixe selon profil et expérience</span></li>
+        <li><span class="val">PEE &amp; PER</span><span class="txt">avec abondement du cabinet, en plus des tickets restaurant</span></li>
+      </ul>
+      <i class="abs o-rule o-rule-2"></i>
+      <ul class="abs atouts">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-9.3-9.2C1.5 7.6 3.6 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.4 0 5.5 3.1 4.3 6.3C19.5 15.4 12 20 12 20z"/></svg><p><strong>Fort enjeu humain</strong><span>au service exclusif des victimes</span></p></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/></svg><p><strong>Taille humaine</strong><span>outils numériques performants, innovation</span></p></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20 9 8l4 6 3-4 6 10z"/><path d="M7.4 10.8 9 12l1.6-1.2"/></svg><p><strong>Au cœur des Alpes</strong><span>Grenoble et son cadre de vie montagneux</span></p></li>
+      </ul>
+    </section>
+
+    <!-- 7 · Protocole de recrutement -->
+    <section class="scene" id="s-proto">
+      <div class="abs hdr">
+        <p class="sur">05 — Protocole de recrutement</p>
+        <h2 class="h T"><span class="line"><span>Un recrutement en <em>4&nbsp;étapes</em></span></span></h2>
+      </div>
+      <div class="p-nodes">
+        <span class="pnode" style="left:330px">1</span>
+        <span class="pnode" style="left:750px">2</span>
+        <span class="pnode" style="left:1170px">3</span>
+        <span class="pnode" style="left:1590px">4</span>
+        <p class="pnode-lbl" style="left:330px">Échange<small>téléphonique</small></p>
+        <p class="pnode-lbl" style="left:750px">Entretien n°1<small>au cabinet</small></p>
+        <p class="pnode-lbl" style="left:1170px">Entretien n°2<small>au cabinet</small></p>
+        <p class="pnode-lbl" style="left:1590px">Entretien n°3<small>au cabinet</small></p>
+      </div>
+      <p class="abs p-cap">Un échange téléphonique, puis trois entretiens au cabinet.</p>
+    </section>
+
+    <!-- 8 · Candidater -->
+    <section class="scene" id="s-contact">
+      <div class="abs contact">
+        <p class="sur">Comment candidater&nbsp;?</p>
+        <h2 class="h T"><span class="line"><span>Envoyez votre CV</span></span><span class="line"><span>et votre lettre de motivation</span></span></h2>
+        <div class="mailbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg>
+          <span class="mail">recrutement@victimesetprejudices.fr</span>
+        </div>
+        <p class="lead">Nous étudions <strong>toutes les candidatures</strong> et nous nous engageons à répondre à chacune.</p>
+      </div>
+    </section>
+
+    <!-- 9 · Autodestruction -->
+    <section class="scene" id="s-countdown">
+      <i class="abs alarm"></i>
+      <p class="abs cd-top">Ce message s’autodétruira dans</p>
+      <svg class="abs ring" viewBox="0 0 500 500" aria-hidden="true">
+        <circle cx="250" cy="250" r="226" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="12"/>
+        <circle class="ring-prog" cx="250" cy="250" r="226" fill="none" stroke="#B52026" stroke-width="12" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0" transform="rotate(-90 250 250)"/>
+        <g class="ticks"></g>
+      </svg>
+      <div class="abs digits"><span class="digit">5</span><span class="digit">4</span><span class="digit">3</span><span class="digit">2</span><span class="digit">1</span></div>
+      <p class="abs cd-bot">secondes</p>
+    </section>
+
+    <!-- 10 · Signature -->
+    <section class="scene" id="s-end">
+      <div class="abs end">
+        <svg class="logo" viewBox="0 0 740 495" aria-hidden="true">
+          <path class="leaf-o" fill="#F8A900" d="M731.0 394.0C731.0 389.3 730.8 389.0 728.4 389.0C725.4 389.0 715.8 382.9 704.5 374.0C700.1 370.5 686.1 357.2 673.5 344.4C643.5 314.2 628.7 301.3 599.0 279.3C548.7 242.0 492.1 210.6 433.3 187.1C387.3 168.8 349.2 161.5 299.5 161.7C266.9 161.7 236.3 165.2 203.2 172.6C191.9 175.1 186.0 175.4 185.3 173.4C185.1 172.9 186.1 172.0 187.5 171.4L190.1 170.5L180.4 155.5C148.3 105.5 135.1 87.5 116.0 67.6C102.0 53.0 91.1 44.5 78.0 37.9L72.6 35.1L84.0 29.6C109.8 17.4 139.3 9.9 180.5 5.0C193.9 3.5 228.0 2.0 240.0 2.5C268.7 3.7 277.5 4.2 289.5 5.5C380.6 15.1 462.5 44.4 518.0 87.3C545.2 108.4 583.4 146.0 609.1 177.0C650.5 227.1 681.6 278.9 699.9 328.5C706.8 347.2 715.6 364.7 723.0 374.5C726.3 378.9 729.3 383.3 729.6 384.2C729.9 385.1 731.5 386.4 733.1 387.0C734.7 387.7 736.0 388.7 736.0 389.3C736.0 389.8 736.7 390.8 737.7 391.5C739.7 393.0 738.5 395.4 736.0 394.7C734.7 394.4 734.0 394.9 733.6 396.6C732.5 400.8 731.0 399.2 731.0 394.0Z"/>
+          <path class="leaf-r" fill="#B20426" d="M439.5 492.4C411.7 490.5 380.4 485.1 355.0 477.9C314.9 466.5 284.3 451.7 238.5 421.5C218.8 408.5 216.0 406.5 162.0 367.0C139.7 350.7 114.5 332.6 106.0 326.8C66.0 299.6 35.7 284.7 11.4 280.5C6.7 279.7 2.3 279.0 1.8 279.0C-1.6 279.0 24.6 251.0 37.5 240.9C114.9 180.0 243.5 147.1 350.5 160.6C382.6 164.7 411.1 172.5 444.5 186.3C514.9 215.5 578.2 253.6 635.0 300.9C648.3 312.0 674.6 336.4 675.9 338.8C677.6 342.0 699.5 362.9 709.3 370.8C714.7 375.2 722.9 380.9 727.5 383.6C732.1 386.3 735.9 388.9 736.0 389.5C736.0 390.0 735.3 392.4 734.4 394.7C733.0 398.4 731.8 399.5 725.3 403.0C716.7 407.8 702.4 417.3 689.5 427.0C666.3 444.3 648.5 454.3 622.5 464.5C589.6 477.4 557.7 485.4 517.5 490.6C506.2 492.0 452.2 493.3 439.5 492.4Z"/>
+        </svg>
+        <p class="end-name">Victimes &amp; Préjudices Avocats</p>
+        <h2 class="end-h"><span class="line"><span>Mission <mark>acceptée</mark>&nbsp;?</span></span></h2>
+        <p class="end-sub">Avocat(e) associé(e) <span class="r">salarié(e)</span> · CDI · Grenoble</p>
+        <p class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg>recrutement@victimesetprejudices.fr</p>
+        <p class="end-web">victimesetprejudices.fr</p>
+      </div>
+      <p class="abs quote">«&nbsp;Défendre les victimes n’est pas seulement un métier. C’est d’abord notre engagement.&nbsp;» — <strong>Hervé Gerbi</strong>, avocat fondateur</p>
+      <i class="abs lisere"></i>
+    </section>
+
+  </div>
+
+  <!-- Habillage permanent (HUD) -->
+  <div id="hud">
+    <i class="corner c-tl"></i><i class="corner c-tr"></i><i class="corner c-bl"></i><i class="corner c-br"></i>
+    <p class="hud-tl"><b>Victimes &amp; Préjudices Avocats</b> · Dossier n°&nbsp;VP-38-2026</p>
+    <p class="hud-tr"><span class="rec">●</span> Autodestruction <span class="tc">T-<span id="tc">01:10:00</span></span></p>
+    <p class="hud-bl">45°11′N 5°43′E · Grenoble — 45°54′N 6°07′E · Annecy</p>
+    <p class="hud-br">Classification&nbsp;: confidentiel</p>
+  </div>
+
+  <canvas id="fx" width="1920" height="1080"></canvas>
+  <i id="overlay"></i>
+  <i id="fade"></i>
+</div>
+</div>
+
+<audio id="music" preload="auto"><source src="../output/soundtrack.wav" type="audio/wav"><source src="../output/soundtrack.m4a" type="audio/mp4"></audio>
+<script src="timeline.js"></script>
+<script src="engine.js"></script>
+<script src="fx.js"></script>
+<script src="scenes.js"></script>
+</body>
+</html>

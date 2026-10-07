@@ -1,0 +1,25 @@
+{
+  "name": "mission-association",
+  "version": "1.0.0",
+  "description": "Vidéo motion design style Mission Impossible pour l’offre Avocat(e) associé(e) salarié(e) — Victimes & Préjudices Avocats",
+  "scripts": {
+    "soundtrack": "python3 scripts/soundtrack.py",
+    "render": "node scripts/render.mjs",
+    "build": "python3 scripts/soundtrack.py && node scripts/render.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rigel-cmd/Video.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rigel-cmd/Video/issues"
+  },
+  "homepage": "https://github.com/rigel-cmd/Video#readme",
+  "devDependencies": {
+    "@fontsource/open-sans": "^5.3.0",
+    "@fontsource/poppins": "^5.3.0",
+    "playwright": "^1.56.1"
+  },
+  "private": true,
+  "type": "module"
+}
