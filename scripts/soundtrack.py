@@ -1,4 +1,4 @@
-"""Bande-son de « Mission : association ».
+"""Bande-son de « Mission : Recrutement ».
 
 Musique : assets/spy-agent-mission-music.mp3 (140 BPM, mi mineur), utilisée en entier.
 Par-dessus, des bruitages synthétisés (numpy/scipy) et calés sur video/timeline.js :

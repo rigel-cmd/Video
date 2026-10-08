@@ -1,9 +1,9 @@
 // Rendu image par image de video/index.html, puis encodage MP4 (H.264 + AAC) avec ffmpeg.
 //
-//   node scripts/render.mjs                      → vidéo complète (output/mission-association.mp4)
+//   node scripts/render.mjs                      → vidéo complète (output/mission-recrutement.mp4)
 //   node scripts/render.mjs --stills=4.5,22.6    → captures PNG dans output/stills/
 //   node scripts/render.mjs --from=20 --to=30    → extrait (output/extrait-20-30.mp4)
-//   node scripts/render.mjs --format=vertical    → version 9:16 (output/mission-association-vertical.mp4)
+//   node scripts/render.mjs --format=vertical    → version 9:16 (output/mission-recrutement-vertical.mp4)
 //   options : --workers=3 --fps=30 --out=chemin.mp4 --audio=output/soundtrack.wav
 import { chromium } from 'playwright';
 import { spawnSync } from 'node:child_process';
@@ -90,7 +90,7 @@ try {
 
     // Un extrait (--from / --to) ne doit jamais écraser la vidéo livrée
     const partial = args.from !== undefined || args.to !== undefined;
-    const out = path.resolve(root, args.out || (partial ? `output/extrait${suffix}-${from}-${to}.mp4` : `output/mission-association${suffix}.mp4`));
+    const out = path.resolve(root, args.out || (partial ? `output/extrait${suffix}-${from}-${to}.mp4` : `output/mission-recrutement${suffix}.mp4`));
     const ff = ['-y', '-framerate', String(FPS), '-i', path.join(frames, '%05d.jpg')];
     if (audio && !args.mute) ff.push('-ss', String(from), '-t', String(to - from), '-i', audio);
     ff.push('-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-profile:v', 'high',

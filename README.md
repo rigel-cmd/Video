@@ -1,4 +1,4 @@
-# Mission : association
+# Mission : Recrutement
 
 Vidéo en motion design (1920×1080, 30 i/s, 1 min 27) qui présente l'offre d'emploi
 **Avocat(e) associé(e) salarié(e)** de *Victimes & Préjudices Avocats* à la manière
@@ -6,8 +6,8 @@ de *Mission Impossible* : mèche allumée, message chiffré, dossier d'agent et 
 mais ce message-là ne s'autodétruit pas : le cabinet répond à chaque candidature.
 
 **Vidéos finales :**
-- paysage 1920×1080 (site, LinkedIn, YouTube) : [`output/mission-association.mp4`](output/mission-association.mp4)
-- verticale 1080×1920 (Reels, TikTok, Shorts, stories) : [`output/mission-association-vertical.mp4`](output/mission-association-vertical.mp4)
+- paysage 1920×1080 (site, LinkedIn, YouTube) : [`output/mission-recrutement.mp4`](output/mission-recrutement.mp4)
+- verticale 1080×1920 (Reels, TikTok, Shorts, stories) : [`output/mission-recrutement-vertical.mp4`](output/mission-recrutement-vertical.mp4)
 
 La version verticale reprend le même scénario, la même chronologie et la même bande-son ;
 chaque écran est remis en page pour le portrait (titres sur plusieurs lignes, grille des
@@ -85,8 +85,8 @@ Prérequis : Node 18+, Python 3 avec `numpy` et `scipy`, ffmpeg, et Chromium pou
 ```bash
 npm install
 python3 scripts/soundtrack.py          # → output/soundtrack.wav
-node scripts/render.mjs                # → output/mission-association.mp4
-node scripts/render.mjs --format=vertical   # → output/mission-association-vertical.mp4
+node scripts/render.mjs                # → output/mission-recrutement.mp4
+node scripts/render.mjs --format=vertical   # → output/mission-recrutement-vertical.mp4
 ```
 
 Options utiles :
