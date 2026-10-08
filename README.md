@@ -27,9 +27,11 @@ Dans `output/print/` :
 **Impression** : imprimer le PDF à 100 % (« Taille réelle »), pas en « Ajuster à la page ».
 L'affiche est composée pour rester lisible sur papier : aucun texte sous 8,5 pt, petites
 informations à 10 pt, e-mail à 15 pt, texte clair en graisse 600 minimum, et tous les textes
-à plus de 8 mm des bords (imprimantes de bureau sans fonds perdus).
+à au moins 8 mm des bords. Le fond, le liseré tricolore du bas et les coins de visée vont
+jusqu'au bord (fond perdu) : une imprimante de bureau laisse une fine marge blanche et rogne
+le liseré, sans toucher au texte. Pour un tirage à fond perdu, passer par un imprimeur.
 
-**Emplacement du QR code** : carré blanc de 40 × 40 mm, à 159,4 mm du bord gauche et 231,1 mm
+**Emplacement du QR code** : carré blanc de 40 × 40 mm, à 159,4 mm du bord gauche et 231,0 mm
 du haut de l'affiche (marge de silence comprise). Pour l'intégrer directement :
 
 ```bash

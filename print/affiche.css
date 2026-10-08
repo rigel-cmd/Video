@@ -32,21 +32,21 @@ h1 span{display:block}
 
 /* ———— Affiche A4 portrait (210 × 297 mm) ————
    Lisibilité à l'impression : aucun texte sous 8,5 pt, petites informations à 10 pt, texte clair en graisse ≥ 600
-   avec un interlettrage positif, textes et QR à plus de 9 mm des bords (imprimantes sans fonds perdus).
+   avec un interlettrage positif, textes et QR à au moins 8 mm des bords (imprimantes sans fonds perdus).
    1 px CSS = 0,2646 mm = 0,75 pt. */
 .f-a4 #page{width:210mm;height:297mm}
-/* fondu du buste avant son bord bas : pas d'arête entre les deux lignes du titre */
-.f-a4 .figure{left:187px;top:194px;width:420px;height:462px;-webkit-mask-image:linear-gradient(#000 72%,transparent 95%);mask-image:linear-gradient(#000 72%,transparent 95%)}
+/* fondu du buste avant son bord bas : ni arête ni liseré lumineux au contact du titre */
+.f-a4 .figure{left:187px;top:194px;width:420px;height:462px;-webkit-mask-image:linear-gradient(#000 70%,transparent 86%);mask-image:linear-gradient(#000 70%,transparent 86%)}
 .f-a4 .top{left:0;right:0;top:38px;text-align:center}
 .f-a4 .presents{font-size:13.5px;letter-spacing:.28em;color:var(--creme)}
 .f-a4 .tagline{margin-top:7px;font-size:26px;line-height:1.3}
 .f-a4 .title{left:40px;right:40px;top:588px;text-align:center}
 .f-a4 h1{font-size:88px}
 .f-a4 .role{margin-top:14px;font-size:32px}
-.f-a4 .facts{margin-top:10px;font-size:13.5px;letter-spacing:.13em}
+.f-a4 .facts{margin-top:7px;font-size:13.5px;letter-spacing:.13em;color:var(--creme)}
 .f-a4 .bottom{display:flex;left:40px;right:40px;bottom:38px;gap:28px;align-items:flex-start}
 .f-a4 .bill{flex:1;padding-top:4px;border-top:1px solid rgba(201,212,220,.22)}
-.f-a4 .now{margin-top:10px;font-family:"Poppins";font-weight:800;font-size:28px;line-height:1.2;letter-spacing:.05em;text-transform:uppercase}
+.f-a4 .now{margin-top:10px;font-family:"Poppins";font-weight:800;font-size:26px;line-height:1.2;letter-spacing:.04em;text-transform:uppercase}
 .f-a4 .mail{margin-top:3px;font-family:"Poppins";font-weight:700;font-size:20px;line-height:1.3;color:var(--orange)}
 .f-a4 .credits{margin-top:11px;font-family:"Poppins";font-weight:600;font-size:11.5px;line-height:1.5;letter-spacing:.03em;text-transform:uppercase;text-wrap:pretty;color:var(--creme)}
 .f-a4 .credits b{font-weight:800;color:#fff}
@@ -54,12 +54,13 @@ h1 span{display:block}
 .f-a4 .studio .leaf{width:50px;height:33px}
 .f-a4 .studio p{font-family:"Poppins";font-weight:600;font-size:13.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--creme);line-height:1.35}
 .f-a4 .studio p b{font-weight:800}
-.f-a4 .studio p span{display:block;font-family:"Open Sans";font-weight:600;letter-spacing:.03em;text-transform:none;color:var(--clair)}
-.f-a4 .qr-zone{flex:none;width:40mm;padding-top:calc(4px + 2.2mm)}
+.f-a4 .studio p span{display:block;font-family:"Open Sans";font-weight:600;letter-spacing:.03em;text-transform:none;color:var(--creme)}
+.f-a4 .qr-zone{flex:none;width:40mm;padding-top:calc(2.2mm + 1.25px)}
 /* Emplacement du QR code : carré blanc de 40 × 40 mm (marge de silence comprise) ; le cadre orange s'aligne sur le filet */
 .f-a4 .qr{position:relative;width:40mm;height:40mm;border-radius:2mm;background:#fff;outline:1.5px solid rgba(252,175,25,.9);outline-offset:2.2mm;overflow:hidden}
 .f-a4 .qr img{position:absolute;inset:4mm;width:calc(100% - 8mm);height:calc(100% - 8mm);image-rendering:pixelated}
-.f-a4 .qr-lbl{margin:4.4mm -2.2mm 0;font-family:"Poppins";font-weight:700;font-size:13.5px;letter-spacing:.03em;text-transform:uppercase;text-align:center;color:var(--orange);line-height:1.3;text-wrap:balance}
+/* légende : ses deux lignes s'alignent sur celles du bloc logo, à gauche */
+.f-a4 .qr-lbl{margin:23.7px -2.2mm 0;font-family:"Poppins";font-weight:700;font-size:13.5px;letter-spacing:.03em;text-transform:uppercase;text-align:center;color:var(--orange);line-height:1.35;text-wrap:balance}
 .f-a4 .lisere{height:6px}
 
 /* ———— Vignette 16:9 (1920 × 1080) ———— */
