@@ -3,7 +3,8 @@
 (function () {
   const { on, rnd, clamp, lerp, $ } = Engine;
   const TL = window.TL;
-  const W = 1920, H = 1080;
+  const W = FMT.W, H = FMT.H;
+  for (const c of document.querySelectorAll('#stage canvas')) { c.width = W; c.height = H; }
 
   const fx = $('#fx').getContext('2d');
   const bg = $('#bg').getContext('2d');
@@ -151,8 +152,13 @@
   }
 
   /* ———— Mèches de la vidéo ———— */
-  const pIntro = new Path([[90, 872], [230, 850], [350, 760], [480, 650], [640, 615], [800, 690], [930, 815], [1100, 858], [1260, 760], [1385, 645], [1540, 606], [1700, 680], [1830, 770], [2000, 790]]);
-  const pHud = new Path([[100, 996], [1820, 996]]);
+  // Mèche d'ouverture : elle serpente autour du titre « … présente »
+  const pIntro = new Path(FMT.vertical
+    ? [[80, 1700], [280, 1640], [500, 1720], [740, 1640], [940, 1480], [860, 1320], [600, 1260], [340, 1240], [160, 1150], [110, 1000], [130, 760], [260, 600], [520, 560], [780, 500], [960, 400], [1160, 330]]
+    : [[90, 872], [230, 850], [350, 760], [480, 650], [640, 615], [800, 690], [930, 815], [1100, 858], [1260, 760], [1385, 645], [1540, 606], [1700, 680], [1830, 770], [2000, 790]]);
+  // Mèche du bandeau, au-dessus des textes du bas
+  const HF = FMT.vertical ? { x0: 100, x1: 980, y: 1788 } : { x0: 100, x1: 1820, y: 996 };
+  const pHud = new Path([[HF.x0, HF.y], [HF.x1, HF.y]]);
   const span = (t, [a, b]) => clamp((t - a) / (b - a));
 
   function drawIntro(t) {
@@ -174,22 +180,22 @@
   }
 
   const hudRun = [TL.fuse.hud, TL.zero]; // la mèche du bandeau brûle jusqu'au zéro du compte à rebours
-  function hudFuseX(t) { return lerp(100, 1820, span(t, hudRun)); }
+  function hudFuseX(t) { return lerp(HF.x0, HF.x1, span(t, hudRun)); }
   function drawHudFuse(t) {
     const [a, b] = hudRun; // à b, la mèche s'éteint
     const fadeOut = clamp((TL.iris[0] + 0.2 - t) / 0.3);
     if (t < a || fadeOut <= 0) return;
     const alpha = clamp((t - a) / 0.4) * fadeOut;
-    const s = hudFuseX(t) - 100;
+    const s = hudFuseX(t) - HF.x0;
     const cd = clamp((t - TL.scenes.countdown[0]) / 1.5); // la mèche grossit pendant le compte à rebours
     rope(fx, pHud, s, pHud.len, 3 + 1.5 * cd, alpha * 0.9);
     burnt(fx, pHud, 0, s, 3, alpha * 0.5);
     const out = clamp((t - b) / 0.35); // 0 → 1 : la flamme s'étouffe
     if (out < 1) {
       ember(fx, pHud, s, 50, (0.6 + 0.5 * cd) * (1 - out));
-      head(fx, 100 + s, 996, t, (0.5 + 0.55 * cd) * alpha * (1 - out));
+      head(fx, HF.x0 + s, HF.y, t, (0.5 + 0.55 * cd) * alpha * (1 - out));
     }
-    sparks(fx, t, (tb) => (tb >= a + 0.3 && tb < b ? { x: hudFuseX(tb), y: 996 } : null),
+    sparks(fx, t, (tb) => (tb >= a + 0.3 && tb < b ? { x: hudFuseX(tb), y: HF.y } : null),
       { rate: 50 + 160 * cd, life: 0.5 + 0.25 * cd, speed: 170 + 260 * cd, gravity: 700, seed: 31, width: 1.4 + 0.8 * cd, alpha: alpha });
   }
 
@@ -205,8 +211,8 @@
       const life = 1.8 + 1.0 * rnd(i, 1201);
       if (age > life) continue;
       const k = age / life;
-      const x = 1820 + (rnd(i, 1202) - 0.5) * 60 - age * (10 + 34 * rnd(i, 1203)) + Math.sin(age * (1.6 + rnd(i, 1205)) + i) * 26 * k;
-      const y = 990 - age * (45 + 60 * rnd(i, 1204));
+      const x = HF.x1 + (rnd(i, 1202) - 0.5) * 60 - age * (10 + 34 * rnd(i, 1203)) + Math.sin(age * (1.6 + rnd(i, 1205)) + i) * 26 * k;
+      const y = HF.y - 6 - age * (45 + 60 * rnd(i, 1204));
       const r = 10 + 60 * k;
       const al = 0.08 * (1 - k) * (1 - k) * Math.min(1, age / 0.2) * fadeOut;
       const g = fx.createRadialGradient(x, y, 0, x, y, r);

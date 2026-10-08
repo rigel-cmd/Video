@@ -139,13 +139,16 @@
   fadeUp('#s-missions .sur', m0 + 0.15, 0.6, 20);
   lineUp('#s-missions .h .line>span', m0 + 0.25);
   fadeIn('#s-missions .count', TL.cards.start, 0.4);
-  const cols = [110, 542, 974, 1406], rows = [300, 618];
+  // Grille : 4 × 2 en paysage, 2 × 4 en vertical ; chaque carte s'affiche d'abord en grand au centre
+  const G = FMT.vertical
+    ? { cols: [80, 552], rows: [490, 786, 1082, 1378], perRow: 2, hw: 224, hh: 136, cx: 540, cy: 980 }
+    : { cols: [110, 542, 974, 1406], rows: [300, 618], perRow: 4, hw: 202, hh: 145, cx: 960, cy: 575 };
   const cards = $$('#s-missions .card');
   const cardT = (i) => TL.cards.start + i * TL.cards.step;
   cards.forEach((c, i) => {
-    const x = cols[i % 4], y = rows[Math.floor(i / 4)];
+    const x = G.cols[i % G.perRow], y = G.rows[Math.floor(i / G.perRow)];
     Object.assign(c.style, { left: x + 'px', top: y + 'px', zIndex: 10 + i });
-    const dx = 960 - (x + 202), dy = 575 - (y + 145), t0 = cardT(i);
+    const dx = G.cx - (x + G.hw), dy = G.cy - (y + G.hh), t0 = cardT(i);
     const big = (s) => `translate(${dx}px,${dy}px) scale(${s})`;
     // La carte reste agrandie ≈0,85 s ; elle regagne la grille pendant que la suivante arrive (z-index plus haut)
     K(c, [[t0, { opacity: 0, transform: big(2.3) }], [t0 + 0.2, { opacity: 1, transform: big(1.8) }, 'out'],
@@ -159,7 +162,7 @@
     mCount.textContent = pad(n);
   });
   const sw = cardT(cards.length - 1) + 1.5;
-  K('.grid-sweep', [[sw, { transform: 'translateX(-260px)' }], [sw + 1.1, { transform: 'translateX(1920px)' }, 'inOut']]);
+  K('.grid-sweep', [[sw, { transform: 'translateX(-260px)' }], [sw + 1.1, { transform: `translateX(${FMT.W}px)` }, 'inOut']]);
   K('.grid-sweep', [[sw, { opacity: 0 }], [sw + 0.1, { opacity: 1 }], [sw + 1.0, { opacity: 1 }], [sw + 1.1, { opacity: 0 }]]);
   exit('#s-missions', S.missions[1]);
 
@@ -236,7 +239,8 @@
   K('.ok-path', [[fix + 0.2, { strokeDashoffset: 1 }], [fix + 0.6, { strokeDashoffset: 0 }, 'out']]);
   K('.cd-rep', [[TL.reply, { opacity: 0, transform: 'translateY(20px)' }], [TL.reply + 0.6, { opacity: 1, transform: 'translateY(0px)' }, 'out']]);
   // Ouverture en iris vers la carte finale (sans explosion ni écran brûlé)
-  K('#s-end', [[iris0, { clipPath: 'circle(0px at 960px 540px)' }], [iris1, { clipPath: 'circle(1150px at 960px 540px)' }, 'inOut']]);
+  const ic = `${FMT.W / 2}px ${FMT.H / 2}px`; // centre de l'anneau = centre de l'écran
+  K('#s-end', [[iris0, { clipPath: `circle(0px at ${ic})` }], [iris1, { clipPath: `circle(1150px at ${ic})` }, 'inOut']]);
   K('.iris-ring', [[iris0, { transform: 'scale(0)' }], [iris1, { transform: 'scale(1)' }, 'inOut']]);
   K('.iris-ring', [[iris0, { opacity: 0 }], [iris0 + 0.05, { opacity: 1 }], [iris1 - 0.15, { opacity: 1 }], [iris1 + 0.1, { opacity: 0 }]]);
 
@@ -281,7 +285,7 @@
   }
 
   // Aperçu : mise à l'échelle, clic / espace = lecture-pause, flèches = ±2 s
-  const fit = () => stage.style.setProperty('--s', Math.min(innerWidth / 1920, innerHeight / 1080));
+  const fit = () => stage.style.setProperty('--s', Math.min(innerWidth / FMT.W, innerHeight / FMT.H));
   fit();
   addEventListener('resize', fit);
   const music = $('#music');

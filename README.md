@@ -5,7 +5,14 @@ Vidéo en motion design (1920×1080, 30 i/s, 1 min 27) qui présente l'offre d'e
 de *Mission Impossible* : mèche allumée, message chiffré, dossier d'agent et compte à rebours…
 mais ce message-là ne s'autodétruit pas : le cabinet répond à chaque candidature.
 
-**Vidéo finale :** [`output/mission-association.mp4`](output/mission-association.mp4)
+**Vidéos finales :**
+- paysage 1920×1080 (site, LinkedIn, YouTube) : [`output/mission-association.mp4`](output/mission-association.mp4)
+- verticale 1080×1920 (Reels, TikTok, Shorts, stories) : [`output/mission-association-vertical.mp4`](output/mission-association-vertical.mp4)
+
+La version verticale reprend le même scénario, la même chronologie et la même bande-son ;
+chaque écran est remis en page pour le portrait (titres sur plusieurs lignes, grille des
+missions en 2 × 4, fiche agent au-dessus des compétences, adresse e-mail coupée après « @ »).
+Les contenus essentiels restent dans la zone centrale, hors des surimpressions des applications.
 
 ## Déroulé
 
@@ -43,6 +50,8 @@ Tout est généré par du code, sans logiciel de montage :
   (`window.seek(t)`), ce qui rend le rendu parfaitement reproductible.
   - `timeline.js` — chronologie partagée par l'image et le son (scènes, impacts, mèches…)
   - `scenes.js` — le scénario et les animations de chaque scène
+  - `format.js` — choix du format (paysage par défaut, vertical avec `?format=vertical`) ;
+    la mise en page verticale est regroupée à la fin de `style.css` (classe `.v`)
   - `fx.js` — effets au canvas : mèches et étincelles, fumée, glitchs, flashs
 - `scripts/soundtrack.py` — mixage : la musique, plus des bruitages synthétisés (mèche,
   frappe, impacts, tic-tac, extinction de la mèche) calés sur la chronologie ; sonie −14 LUFS
@@ -58,6 +67,7 @@ Prérequis : Node 18+, Python 3 avec `numpy` et `scipy`, ffmpeg, et Chromium pou
 npm install
 python3 scripts/soundtrack.py          # → output/soundtrack.wav
 node scripts/render.mjs                # → output/mission-association.mp4
+node scripts/render.mjs --format=vertical   # → output/mission-association-vertical.mp4
 ```
 
 Options utiles :
@@ -70,7 +80,8 @@ node scripts/render.mjs --from=64 --to=76      # extrait → output/extrait-64-7
 ### Aperçu dans le navigateur
 
 Servir le dossier puis ouvrir `video/index.html` (clic ou Espace pour lancer,
-flèches pour avancer ou reculer de 2 s, `?t=42` pour démarrer à 42 s) :
+flèches pour avancer ou reculer de 2 s, `?t=42` pour démarrer à 42 s,
+`?format=vertical` pour la version verticale) :
 
 ```bash
 npx serve .

@@ -3,6 +3,7 @@
 //   node scripts/render.mjs                      → vidéo complète (output/mission-association.mp4)
 //   node scripts/render.mjs --stills=4.5,22.6    → captures PNG dans output/stills/
 //   node scripts/render.mjs --from=20 --to=30    → extrait (output/extrait-20-30.mp4)
+//   node scripts/render.mjs --format=vertical    → version 9:16 (output/mission-association-vertical.mp4)
 //   options : --workers=3 --fps=30 --out=chemin.mp4 --audio=output/soundtrack.wav
 import { chromium } from 'playwright';
 import { spawnSync } from 'node:child_process';
@@ -15,10 +16,13 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
   const [k, v] = a.replace(/^--/, '').split('=');
   return [k, v ?? true];
 }));
-const url = pathToFileURL(path.join(root, 'video/index.html')).href + '?render';
+const vertical = args.format === 'vertical';
+const [VW, VH] = vertical ? [1080, 1920] : [1920, 1080];
+const url = pathToFileURL(path.join(root, 'video/index.html')).href + '?render' + (vertical ? '&format=vertical' : '');
+const suffix = vertical ? '-vertical' : '';
 
 async function openPage(browser) {
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
   page.on('console', (m) => { if (['warning', 'error'].includes(m.type())) console.log('[page]', m.text()); });
   page.on('pageerror', (e) => console.error('[page error]', e.message));
@@ -47,7 +51,7 @@ try {
     fs.mkdirSync(dir, { recursive: true });
     for (const s of String(args.stills).split(',')) {
       const t = Number(s);
-      const file = path.join(dir, `t${t.toFixed(2).padStart(6, '0')}.png`);
+      const file = path.join(dir, `t${t.toFixed(2).padStart(6, '0')}${suffix}.png`);
       fs.writeFileSync(file, await capture(probe, t, 'png'));
       console.log(file);
     }
@@ -86,7 +90,7 @@ try {
 
     // Un extrait (--from / --to) ne doit jamais écraser la vidéo livrée
     const partial = args.from !== undefined || args.to !== undefined;
-    const out = path.resolve(root, args.out || (partial ? `output/extrait-${from}-${to}.mp4` : 'output/mission-association.mp4'));
+    const out = path.resolve(root, args.out || (partial ? `output/extrait${suffix}-${from}-${to}.mp4` : `output/mission-association${suffix}.mp4`));
     const ff = ['-y', '-framerate', String(FPS), '-i', path.join(frames, '%05d.jpg')];
     if (audio && !args.mute) ff.push('-ss', String(from), '-t', String(to - from), '-i', audio);
     ff.push('-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-profile:v', 'high',

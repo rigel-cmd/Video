@@ -5,7 +5,8 @@
   "scripts": {
     "soundtrack": "python3 scripts/soundtrack.py",
     "render": "node scripts/render.mjs",
-    "build": "python3 scripts/soundtrack.py && node scripts/render.mjs"
+    "build": "python3 scripts/soundtrack.py && node scripts/render.mjs && node scripts/render.mjs --format=vertical",
+    "render:vertical": "node scripts/render.mjs --format=vertical"
   },
   "repository": {
     "type": "git",
