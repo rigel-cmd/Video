@@ -1,0 +1,94 @@
+/* Affiche A4 et vignettes de la vidéo « Mission : association »
+   Charte Victimes & Préjudices : Poppins (600/700/800) et Open Sans uniquement. */
+@font-face{font-family:"Poppins";font-weight:600;src:url(../video/fonts/poppins-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Poppins";font-weight:700;src:url(../video/fonts/poppins-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Poppins";font-weight:800;src:url(../video/fonts/poppins-latin-800-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:400;src:url(../video/fonts/open-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:600;src:url(../video/fonts/open-sans-latin-600-normal.woff2) format("woff2")}
+
+:root{--ardoise:#304859;--ardoise-fonce:#23384A;--rouge:#B52026;--orange:#FCAF19;--vert:#8EC33F;--creme:#FDF8E6;--clair:#C9D4DC;--nuit:#070C11}
+@page{size:A4;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000}
+#page{position:relative;overflow:hidden;background:var(--nuit);color:#fff;font-family:"Open Sans",sans-serif;-webkit-font-smoothing:antialiased;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#art{position:absolute;inset:0;width:100%;height:100%}
+.figure{position:absolute;overflow:visible}
+.figure .q,.figure .q-glow{font-family:"Poppins";font-weight:800;font-size:190px;fill:var(--orange)}
+.figure .q{fill-opacity:.95}
+.figure .q-glow{fill-opacity:.7}
+.top,.title,.bottom,.brand-169{position:absolute}
+.presents{font-family:"Poppins";font-weight:600;text-transform:uppercase;color:rgba(253,248,230,.88)}
+.tagline{font-family:"Poppins";font-weight:600;color:var(--orange)}
+h1{font-family:"Poppins";font-weight:800;text-transform:uppercase;line-height:.94;letter-spacing:-.02em}
+h1 span{display:block}
+.t1{color:#fff}
+.t2{color:var(--orange);text-shadow:0 0 40px rgba(252,175,25,.35)}
+.role{font-family:"Poppins";font-weight:800;letter-spacing:-.01em;color:#fff}
+.band{display:inline-block;padding:0 .22em .06em;border-radius:.14em;background:var(--rouge);color:#fff}
+.facts{font-family:"Poppins";font-weight:600;text-transform:uppercase;color:var(--clair)}
+.lisere{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(90deg,var(--rouge) 0 55%,var(--orange) 55% 82%,var(--vert) 82% 100%)}
+.leaf{display:block;flex:none}
+.bottom,.brand-169{display:none}
+
+/* ———— Affiche A4 portrait (210 × 297 mm) ———— */
+.f-a4 #page{width:210mm;height:297mm}
+.f-a4 .figure{left:177px;top:192px;width:440px;height:484px}
+.f-a4 .top{left:0;right:0;top:38px;text-align:center}
+.f-a4 .presents{font-size:10px;letter-spacing:.42em}
+.f-a4 .tagline{margin-top:10px;font-size:21px}
+.f-a4 .title{left:40px;right:40px;top:628px;text-align:center}
+.f-a4 h1{font-size:86px}
+.f-a4 .role{margin-top:18px;font-size:25px}
+.f-a4 .facts{margin-top:14px;font-size:9.5px;letter-spacing:.24em}
+.f-a4 .bottom{display:flex;left:40px;right:40px;top:906px;gap:30px;align-items:flex-start}
+.f-a4 .bill{flex:1;padding-top:6px;border-top:1px solid rgba(201,212,220,.22)}
+.f-a4 .now{margin-top:10px;font-family:"Poppins";font-weight:800;font-size:19px;letter-spacing:.06em;text-transform:uppercase}
+.f-a4 .mail{margin-top:2px;font-family:"Poppins";font-weight:700;font-size:14.5px;color:var(--orange)}
+.f-a4 .credits{margin-top:10px;font-family:"Poppins";font-weight:600;font-size:7.4px;line-height:1.55;letter-spacing:.06em;text-transform:uppercase;text-align:justify;color:rgba(201,212,220,.72)}
+.f-a4 .credits b{font-weight:800;color:#fff}
+.f-a4 .studio{display:flex;align-items:center;gap:10px;margin-top:12px}
+.f-a4 .studio .leaf{width:42px;height:28px}
+.f-a4 .studio p{font-family:"Poppins";font-weight:600;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--creme);line-height:1.35}
+.f-a4 .studio p b{font-weight:800}
+.f-a4 .studio p span{display:block;font-family:"Open Sans";font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--clair)}
+.f-a4 .qr-zone{flex:none;width:40mm;padding-top:6px}
+/* Emplacement du QR code : carré blanc de 40 × 40 mm (marge de silence comprise) */
+.f-a4 .qr{position:relative;width:40mm;height:40mm;border-radius:2mm;background:#fff;outline:1.5px solid rgba(252,175,25,.9);outline-offset:2.2mm;overflow:hidden}
+.f-a4 .qr img{position:absolute;inset:4mm;width:calc(100% - 8mm);height:calc(100% - 8mm);image-rendering:pixelated}
+.f-a4 .qr-lbl{margin-top:4.2mm;font-family:"Poppins";font-weight:700;font-size:8px;letter-spacing:.14em;text-transform:uppercase;text-align:center;color:var(--orange);line-height:1.35;text-wrap:balance}
+.f-a4 .lisere{height:6px}
+
+/* ———— Vignette 16:9 (1920 × 1080) ———— */
+.f-169 #page{width:1920px;height:1080px}
+.f-169 .figure{left:1150px;top:150px;width:640px;height:704px}
+.f-169 .top{left:110px;top:150px}
+.f-169 .presents{font-size:22px;letter-spacing:.34em}
+.f-169 .tagline{margin-top:16px;font-size:42px}
+.f-169 .title{left:104px;top:330px}
+.f-169 h1{font-size:150px}
+.f-169 .t2{font-size:130px}
+.f-169 .role{margin-top:34px;font-size:52px}
+.f-169 .facts{margin-top:26px;font-size:20px;letter-spacing:.2em}
+.f-169 .brand-169{display:flex;left:110px;bottom:84px;align-items:center;gap:18px}
+.f-169 .brand-169 .leaf{width:72px;height:48px}
+.f-169 .brand-169 p{font-family:"Poppins";font-weight:600;font-size:22px;letter-spacing:.16em;text-transform:uppercase;color:var(--creme)}
+.f-169 .brand-169 b{font-weight:800}
+.f-169 .lisere{height:12px}
+
+/* ———— Vignette 9:16 (1080 × 1920) ————
+   Contenu essentiel entre 240 et 1680 px (recadrage 3:4 de la grille Instagram). */
+.f-916 #page{width:1080px;height:1920px}
+.f-916 .figure{left:205px;top:360px;width:670px;height:737px}
+.f-916 .top{left:0;right:0;top:250px;text-align:center}
+.f-916 .presents{font-size:20px;letter-spacing:.32em}
+.f-916 .tagline{margin-top:14px;font-size:38px}
+.f-916 .title{left:50px;right:50px;top:1050px;text-align:center}
+.f-916 h1{font-size:134px}
+.f-916 .t2{font-size:120px}
+.f-916 .role{margin-top:34px;font-size:48px}
+.f-916 .facts{margin-top:26px;padding:0 60px;font-size:19px;letter-spacing:.2em;line-height:1.6}
+.f-916 .brand-169{display:flex;left:0;right:0;top:1560px;justify-content:center;align-items:center;gap:16px}
+.f-916 .brand-169 .leaf{width:66px;height:44px}
+.f-916 .brand-169 p{font-family:"Poppins";font-weight:600;font-size:21px;letter-spacing:.16em;text-transform:uppercase;color:var(--creme)}
+.f-916 .brand-169 b{font-weight:800}
+.f-916 .lisere{height:12px}

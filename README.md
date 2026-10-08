@@ -14,6 +14,25 @@ chaque écran est remis en page pour le portrait (titres sur plusieurs lignes, g
 missions en 2 × 4, fiche agent au-dessus des compétences, adresse e-mail coupée après « @ »).
 Les contenus essentiels restent dans la zone centrale, hors des surimpressions des applications.
 
+## Affiche et vignettes
+
+Dans `output/print/` :
+
+- `affiche-a4.pdf` — affiche de cinéma A4 portrait (210 × 297 mm), texte vectoriel, polices embarquées,
+  prête à imprimer (sans fonds perdus) ; `affiche-a4.png` — la même en 300 dpi (2480 × 3508 px)
+- `vignette-16x9.jpg` / `.png` — couverture de la vidéo paysage (1920 × 1080 : YouTube, LinkedIn, site)
+- `vignette-9x16.jpg` / `.png` — couverture de la vidéo verticale (1080 × 1920 : Reels, TikTok, Shorts) ;
+  l'essentiel tient dans la zone visible du recadrage 3:4 de la grille Instagram
+
+**Emplacement du QR code** : carré blanc de 40 × 40 mm, à 159,4 mm du bord gauche et 241,3 mm
+du haut de l'affiche (marge de silence comprise). Pour l'intégrer directement :
+
+```bash
+node scripts/render-print.mjs --qr=chemin/vers/qr.png    # régénère affiche et vignettes
+```
+
+Sources : `print/affiche.html` (`?f=a4`, `?f=16x9`, `?f=9x16`), `print/affiche.css`, `print/art.js`.
+
 ## Déroulé
 
 Le montage est calé sur la musique (140 BPM) : chaque scène commence sur un temps fort.

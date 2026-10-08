@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mission : association — affiche et vignettes</title>
+<link rel="stylesheet" href="affiche.css">
+<script>
+  // Format : ?f=a4 (affiche, défaut) · ?f=16x9 · ?f=9x16 (vignettes de la vidéo) ; &qr=chemin.png insère un QR code
+  (function () {
+    const f = new URLSearchParams(location.search).get('f') || 'a4';
+    document.documentElement.className = 'f-' + ({ a4: 'a4', '16x9': '169', '9x16': '916' }[f] || 'a4');
+  })();
+</script>
+</head>
+<body>
+<div id="page">
+  <canvas id="art"></canvas>
+
+  <svg class="figure" viewBox="0 0 600 660" aria-hidden="true">
+    <defs>
+      <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#FCAF19" stop-opacity="0"/>
+        <stop offset=".55" stop-color="#FCAF19" stop-opacity=".15"/>
+        <stop offset="1" stop-color="#FFC94D" stop-opacity="1"/>
+      </linearGradient>
+      <linearGradient id="fadeMask" x1="0" y1="0" x2="0" y2="1">
+        <stop offset=".6" stop-color="#fff"/>
+        <stop offset=".97" stop-color="#000"/>
+      </linearGradient>
+      <mask id="fade" maskUnits="userSpaceOnUse" x="-60" y="-60" width="720" height="780"><rect x="-60" y="-60" width="720" height="780" fill="url(#fadeMask)"/></mask>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
+      <filter id="qglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+      <g id="body">
+        <path d="M300 84 C362 84 392 136 392 198 C392 266 352 314 300 314 C248 314 208 266 208 198 C208 136 238 84 300 84 Z"/>
+        <path d="M8 660 C18 560 70 470 172 440 C220 426 248 404 264 354 L266 292 C278 312 288 320 300 320 C312 320 322 312 334 292 L336 354 C352 404 380 426 428 440 C530 470 582 560 592 660 Z"/>
+      </g>
+    </defs>
+    <g mask="url(#fade)">
+      <!-- liseré lumineux (contre-jour de la mèche) -->
+      <use href="#body" fill="none" stroke="url(#rim)" stroke-width="14" filter="url(#glow)"/>
+      <use href="#body" fill="#05090D" stroke="url(#rim)" stroke-width="3"/>
+      <!-- robe d'avocat : revers et rabat blanc -->
+      <path d="M266 352 L300 476 L334 352" fill="none" stroke="rgba(201,212,220,.16)" stroke-width="3"/>
+      <path d="M220 432 C244 500 262 570 268 660 M380 432 C356 500 338 570 332 660" fill="none" stroke="rgba(201,212,220,.07)" stroke-width="3"/>
+      <rect x="289" y="342" width="22" height="18" rx="3" fill="#F2EEE2"/>
+      <path d="M287 358 L299 358 L298 452 L280 446 Z" fill="#F2EEE2"/>
+      <path d="M301 358 L313 358 L320 446 L302 452 Z" fill="#F2EEE2"/>
+      <!-- « ? » : nom de code Vous -->
+      <text class="q-glow" x="300" y="262" text-anchor="middle" filter="url(#qglow)">?</text>
+      <text class="q" x="300" y="262" text-anchor="middle">?</text>
+    </g>
+  </svg>
+
+  <header class="top">
+    <p class="presents">Victimes &amp; Préjudices Avocats présente</p>
+    <p class="tagline">«&nbsp;Votre mission, si vous l’acceptez…&nbsp;»</p>
+  </header>
+
+  <section class="title">
+    <h1><span class="t1">Mission&nbsp;:</span><span class="t2">Association</span></h1>
+    <p class="role">Avocat(e) associé(e) <span class="band">salarié(e)</span></p>
+    <p class="facts">CDI · Statut cadre · Grenoble (38) · Perspective rapide d’association</p>
+  </section>
+
+  <section class="bottom">
+    <div class="bill">
+      <p class="now">Actuellement en recrutement</p>
+      <p class="mail">recrutement@victimesetprejudices.fr</p>
+      <p class="credits"><b>Victimes &amp; Préjudices Avocats</b> présente une offre d’emploi · <b>«&nbsp;Mission&nbsp;: association&nbsp;»</b> · dans le rôle principal <b>vous&nbsp;?</b> · avec le CAPA et cinq ans minimum de pratique en cabinet · un fort leadership · l’esprit entrepreneurial · le sens de la relation client · <b>missions</b> piloter · construire · rédiger · préparer et conduire · plaider · porter la relation client · développer · faire évoluer · tourné à <b>Grenoble</b> et <b>Annecy</b>, au cœur des Alpes · un cabinet exclusivement dédié à la défense des victimes</p>
+      <div class="studio">
+        <svg class="leaf" viewBox="0 0 740 495" aria-hidden="true"><path fill="#F8A900" d="M731.0 394.0C731.0 389.3 730.8 389.0 728.4 389.0C725.4 389.0 715.8 382.9 704.5 374.0C700.1 370.5 686.1 357.2 673.5 344.4C643.5 314.2 628.7 301.3 599.0 279.3C548.7 242.0 492.1 210.6 433.3 187.1C387.3 168.8 349.2 161.5 299.5 161.7C266.9 161.7 236.3 165.2 203.2 172.6C191.9 175.1 186.0 175.4 185.3 173.4C185.1 172.9 186.1 172.0 187.5 171.4L190.1 170.5L180.4 155.5C148.3 105.5 135.1 87.5 116.0 67.6C102.0 53.0 91.1 44.5 78.0 37.9L72.6 35.1L84.0 29.6C109.8 17.4 139.3 9.9 180.5 5.0C193.9 3.5 228.0 2.0 240.0 2.5C268.7 3.7 277.5 4.2 289.5 5.5C380.6 15.1 462.5 44.4 518.0 87.3C545.2 108.4 583.4 146.0 609.1 177.0C650.5 227.1 681.6 278.9 699.9 328.5C706.8 347.2 715.6 364.7 723.0 374.5C726.3 378.9 729.3 383.3 729.6 384.2C729.9 385.1 731.5 386.4 733.1 387.0C734.7 387.7 736.0 388.7 736.0 389.3C736.0 389.8 736.7 390.8 737.7 391.5C739.7 393.0 738.5 395.4 736.0 394.7C734.7 394.4 734.0 394.9 733.6 396.6C732.5 400.8 731.0 399.2 731.0 394.0Z"/><path fill="#B20426" d="M439.5 492.4C411.7 490.5 380.4 485.1 355.0 477.9C314.9 466.5 284.3 451.7 238.5 421.5C218.8 408.5 216.0 406.5 162.0 367.0C139.7 350.7 114.5 332.6 106.0 326.8C66.0 299.6 35.7 284.7 11.4 280.5C6.7 279.7 2.3 279.0 1.8 279.0C-1.6 279.0 24.6 251.0 37.5 240.9C114.9 180.0 243.5 147.1 350.5 160.6C382.6 164.7 411.1 172.5 444.5 186.3C514.9 215.5 578.2 253.6 635.0 300.9C648.3 312.0 674.6 336.4 675.9 338.8C677.6 342.0 699.5 362.9 709.3 370.8C714.7 375.2 722.9 380.9 727.5 383.6C732.1 386.3 735.9 388.9 736.0 389.5C736.0 390.0 735.3 392.4 734.4 394.7C733.0 398.4 731.8 399.5 725.3 403.0C716.7 407.8 702.4 417.3 689.5 427.0C666.3 444.3 648.5 454.3 622.5 464.5C589.6 477.4 557.7 485.4 517.5 490.6C506.2 492.0 452.2 493.3 439.5 492.4Z"/></svg>
+        <p><b>Victimes &amp; Préjudices</b> Avocats<span>victimesetprejudices.fr</span></p>
+      </div>
+    </div>
+    <div class="qr-zone">
+      <div class="qr" id="qr"></div>
+      <p class="qr-lbl">Scannez pour découvrir la mission</p>
+    </div>
+  </section>
+
+  <div class="brand-169">
+    <svg class="leaf" viewBox="0 0 740 495" aria-hidden="true"><path fill="#F8A900" d="M731.0 394.0C731.0 389.3 730.8 389.0 728.4 389.0C725.4 389.0 715.8 382.9 704.5 374.0C700.1 370.5 686.1 357.2 673.5 344.4C643.5 314.2 628.7 301.3 599.0 279.3C548.7 242.0 492.1 210.6 433.3 187.1C387.3 168.8 349.2 161.5 299.5 161.7C266.9 161.7 236.3 165.2 203.2 172.6C191.9 175.1 186.0 175.4 185.3 173.4C185.1 172.9 186.1 172.0 187.5 171.4L190.1 170.5L180.4 155.5C148.3 105.5 135.1 87.5 116.0 67.6C102.0 53.0 91.1 44.5 78.0 37.9L72.6 35.1L84.0 29.6C109.8 17.4 139.3 9.9 180.5 5.0C193.9 3.5 228.0 2.0 240.0 2.5C268.7 3.7 277.5 4.2 289.5 5.5C380.6 15.1 462.5 44.4 518.0 87.3C545.2 108.4 583.4 146.0 609.1 177.0C650.5 227.1 681.6 278.9 699.9 328.5C706.8 347.2 715.6 364.7 723.0 374.5C726.3 378.9 729.3 383.3 729.6 384.2C729.9 385.1 731.5 386.4 733.1 387.0C734.7 387.7 736.0 388.7 736.0 389.3C736.0 389.8 736.7 390.8 737.7 391.5C739.7 393.0 738.5 395.4 736.0 394.7C734.7 394.4 734.0 394.9 733.6 396.6C732.5 400.8 731.0 399.2 731.0 394.0Z"/><path fill="#B20426" d="M439.5 492.4C411.7 490.5 380.4 485.1 355.0 477.9C314.9 466.5 284.3 451.7 238.5 421.5C218.8 408.5 216.0 406.5 162.0 367.0C139.7 350.7 114.5 332.6 106.0 326.8C66.0 299.6 35.7 284.7 11.4 280.5C6.7 279.7 2.3 279.0 1.8 279.0C-1.6 279.0 24.6 251.0 37.5 240.9C114.9 180.0 243.5 147.1 350.5 160.6C382.6 164.7 411.1 172.5 444.5 186.3C514.9 215.5 578.2 253.6 635.0 300.9C648.3 312.0 674.6 336.4 675.9 338.8C677.6 342.0 699.5 362.9 709.3 370.8C714.7 375.2 722.9 380.9 727.5 383.6C732.1 386.3 735.9 388.9 736.0 389.5C736.0 390.0 735.3 392.4 734.4 394.7C733.0 398.4 731.8 399.5 725.3 403.0C716.7 407.8 702.4 417.3 689.5 427.0C666.3 444.3 648.5 454.3 622.5 464.5C589.6 477.4 557.7 485.4 517.5 490.6C506.2 492.0 452.2 493.3 439.5 492.4Z"/></svg>
+    <p><b>Victimes &amp; Préjudices</b> Avocats</p>
+  </div>
+
+  <i class="lisere"></i>
+</div>
+<script src="art.js"></script>
+</body>
+</html>
