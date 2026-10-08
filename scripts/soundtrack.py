@@ -285,9 +285,17 @@ for j in range(int((zero - cd0) / (step / 2))):
 place(sfx, fizzle(), zero, 0.8, 0.85, verb=0.2)
 place(sfx, whoosh(0.32, 2500, 7000, 0.8), zero + 0.06, 0.3, -0.2)  # trait qui barre la phrase
 fix = TL["correct"]
-place(sfx, whoosh(0.4, 5000, 600, 0.8), fix - 0.1, 0.3, 0.3)
-place(sfx, blip(E6, 0.09), fix + 0.1, 0.25, verb=0.3)
-place(sfx, blip(B6, 0.22), fix + 0.22, 0.25, verb=0.4)
+# Impact de la correction : aspiration inversée pendant la rature, puis coup franc au moment où
+# « Ce message ne s'autodétruira pas » apparaît (grave profond + claquement + souffle), non tonal.
+suck = whoosh(fix - zero - 0.25, 600, 9000, 1.0) * np.linspace(0.2, 1, int((fix - zero - 0.25) * SR)) ** 2
+place(sfx, suck, zero + 0.25, 0.55, verb=0.2)
+place(sfx, boom(2.4, 150, 30, 1.0), fix, 1.0, verb=0.45)
+place(sfx, kick(1.0, 0.5), fix, 0.7)
+crack = filt(noise(0.25), "band", (1200, 7000)) * env_exp(0.25, 0.025, 0.0005)
+place(sfx, crack, fix, 0.75, verb=0.35)
+place(sfx, crash(2.2), fix, 0.32, verb=0.4)
+place(sfx, blip(E6, 0.09), fix + 0.2, 0.22, verb=0.3)
+place(sfx, blip(B6, 0.22), fix + 0.32, 0.22, verb=0.4)
 place(sfx, shimmer(1.0), TL["reply"] - 0.1, 0.4, verb=0.4)
 
 # Ouverture en iris, logo, bouton
@@ -321,12 +329,14 @@ def gain_curve(points):
 
 
 # Respiration de la musique : légère baisse sous « Votre mission… » (sur la mesure) puis retour plein
-# juste avant l'impact ; baisse pendant le compte à rebours pour faire entendre le tic-tac, retour au zéro.
+# juste avant l'impact ; baisse pendant le compte à rebours pour faire entendre le tic-tac, retour au zéro ;
+# creux bref sous l'impact de la correction pour lui laisser toute la place.
 # Les remontées se terminent 20 ms avant l'attaque musicale pour ne pas l'écorner.
 rv0 = SC["reveal"][0]
 duck = gain_curve([
     (0, 0), (rv0, 0), (rv0 + 0.857, -3.5), (slam - 0.08, -3.5), (slam - 0.02, 0),
-    (cd0, 0), (cd0 + 0.6, -4), (zero - 0.08, -4), (zero - 0.02, 0), (DUR, 0),
+    (cd0, 0), (cd0 + 0.6, -4), (zero - 0.08, -4), (zero - 0.02, 0),
+    (fix - 0.3, 0), (fix - 0.01, -5), (fix + 0.12, -5), (fix + 0.6, 0), (DUR, 0),
 ])
 music *= duck[:, None]
 

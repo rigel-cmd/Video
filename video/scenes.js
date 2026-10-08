@@ -188,7 +188,6 @@
   });
   fadeIn('.lbl-2', TL.quals.start - 0.3);
   $$('.quals li').forEach((li, i) => pop(li, TL.quals.start + i * TL.quals.step, 0.45, 0.6));
-  fadeUp('.note', TL.quals.start + TL.quals.n * TL.quals.step + 0.1, 0.7, 16);
   exit('#s-profil', S.profil[1]);
 
   /* ———— 6 · Candidater ———— */

@@ -150,8 +150,6 @@ em{font-style:normal}
 .lbl-2{margin-top:34px}
 .quals{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
 .quals li{padding:10px 20px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-family:"Poppins";font-weight:600;font-size:21px;color:#fff}
-.note{margin-top:30px;font-size:21px;line-height:1.5;color:var(--clair);text-wrap:balance}
-.note b{font-family:"Poppins";font-weight:700;color:var(--orange)}
 
 /* 6 · Candidater */
 .contact{left:0;right:0;top:205px;text-align:center}
