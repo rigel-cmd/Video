@@ -24,7 +24,12 @@ Dans `output/print/` :
 - `vignette-9x16.jpg` / `.png` — couverture de la vidéo verticale (1080 × 1920 : Reels, TikTok, Shorts) ;
   l'essentiel tient dans la zone visible du recadrage 3:4 de la grille Instagram
 
-**Emplacement du QR code** : carré blanc de 40 × 40 mm, à 159,4 mm du bord gauche et 241,3 mm
+**Impression** : imprimer le PDF à 100 % (« Taille réelle »), pas en « Ajuster à la page ».
+L'affiche est composée pour rester lisible sur papier : aucun texte sous 8,5 pt, petites
+informations à 10 pt, e-mail à 15 pt, texte clair en graisse 600 minimum, et tous les textes
+à plus de 8 mm des bords (imprimantes de bureau sans fonds perdus).
+
+**Emplacement du QR code** : carré blanc de 40 × 40 mm, à 159,4 mm du bord gauche et 231,1 mm
 du haut de l'affiche (marge de silence comprise). Pour l'intégrer directement :
 
 ```bash
