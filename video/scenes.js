@@ -45,7 +45,9 @@
     rec.style.opacity = done ? 1 : Math.floor(t * 1.6) % 2 ? 0.25 : 1;
     rec.classList.toggle('ok', done);
     const rem = Math.max(0, remaining(t));
-    tc.textContent = done ? 'annulée' : `T-${pad(Math.floor(rem / 60))}:${pad(Math.floor(rem % 60))}:${pad(Math.floor((rem * 30) % 30))}`;
+    // Chiffres dans des cases de largeur fixe : les chiffres de Poppins n'ont pas tous la même chasse
+    tc.innerHTML = done ? 'annulée'
+      : 'T-' + `${pad(Math.floor(rem / 60))}:${pad(Math.floor(rem % 60))}:${pad(Math.floor((rem * 30) % 30))}`.replace(/\d/g, '<i>$&</i>');
     tc.classList.toggle('ok', done);
   });
   K('#overlay', [[iris0, { opacity: 1 }], [iris1, { opacity: 0 }, 'inOut']]);
@@ -248,10 +250,10 @@
   fadeUp('.end-sub', TL.logo + 1.3, 0.7, 16);
   K('.btn', [[TL.button, { opacity: 0, transform: 'translateY(20px) scale(.9)' }], [TL.button + 0.6, { opacity: 1, transform: 'translateY(0px) scale(1)' }, 'back']]);
   // Halo du bouton qui respire sur chaque mesure, puis pulsation sur le dernier accent de la musique
-  const hit = TL.music.finalHit, bar = 4 * step;
+  const hit = TL.music.finalHit, bar = 4 * (60 / TL.music.bpm); // une mesure de la musique
   const halo = [];
-  for (let t = TL.button + 0.6 + bar; t < hit - 0.2; t += bar)
-    halo.push([t, { boxShadow: '0 22px 40px -18px rgba(181,32,38,.85), 0 0 0 0px rgba(181,32,38,.35)' }],
+  for (let t = TL.button + bar; t < hit - 0.2; t += bar) // sur les premiers temps : 77,87 · 79,58 · 81,29 s
+    halo.push([t, { boxShadow: '0 22px 40px -18px rgba(181,32,38,.85), 0 0 0 0px rgba(181,32,38,.35)' }, 'hold'], // repart d'un coup, sans retour visible
               [t + 0.6, { boxShadow: '0 22px 40px -18px rgba(181,32,38,.85), 0 0 0 18px rgba(181,32,38,0)' }, 'out']);
   if (halo.length) K('.btn', halo);
   K('.btn', [[hit, { scale: '1' }], [hit + 0.12, { scale: '1.07' }, 'out'], [hit + 0.7, { scale: '1' }, 'inOut']]);
