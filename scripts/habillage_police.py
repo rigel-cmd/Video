@@ -1,30 +1,22 @@
-"""Habillage sonore de « La police, sujet de débat ? ».
+"""Habillage sonore (bruitages, sans musique) de « La police, sujet de débat ? ».
 
-Tout est synthétisé (numpy/scipy), donc libre de droits. La bande produite a EXACTEMENT
-le même nombre d'échantillons que la voix d'origine (44,1 kHz) : elle se recale à l'image près.
+Tous les effets sont synthétisés (numpy/scipy), donc libres de droits. Les fichiers produits ont
+EXACTEMENT le même nombre d'échantillons que la voix d'origine : ils se recalent à l'image près.
+Les effets ponctuels tombent dans les respirations du texte ; les ambiances (foule, rue) sont
+baissées automatiquement quand la voix parle.
 
     python3 scripts/habillage_police.py chemin/voix.mp3 dossier_sortie
 
 Sorties :
-  La_police_habillage_mix.wav   voix + habillage, prêt à réimporter
-  La_police_habillage_mix.mp3   idem en MP3 320 kb/s (pour écoute rapide)
-  La_police_musique_seule.wav   habillage seul (déjà « ducké » sous la voix), pour mixer soi-même
-
-Dramaturgie (temps calés sur le SRT) :
-  0,0   ouverture : impact grave + sirène lointaine, « La police, sujet de débat ? »
-  0,8   actualité : nappe ré mineur + pulsation sourde (90 BPM), tension retenue
-  25,9  « Tout cela est codifié » : arpège régulier, idée de règle / de cadre
-  37,5  « Premier critère »  : ponctuation 1 (tic + note)
-  44,8  « Le deuxième critère » : ponctuation 2
-  54,9  « Enfin le troisième critère » : ponctuation 3, la plus aboutie
-  66,5  « Donc, vous le voyez » : résolution vers fa majeur, rassurant
-  78,2  « Il n'empêche que parfois » : bascule sombre, la pulsation s'arrête
-  86,3  « Nous avons réalisé un podcast » : motif de piano intime (l'histoire de Maud)
-  95,9  « Alors, la police, on en débat ? » : remontée finale, accord suspendu, fondu à la dernière milliseconde
+  La_police_habillage_mix.wav   voix + bruitages, prêt à réimporter
+  La_police_habillage_mix.mp3   idem en MP3 (écoute rapide seulement)
+  La_police_effets_seuls.wav    bruitages seuls, à caler à 0:00 sous la voix
+  La_police_reperes.csv         liste des effets avec leur temps (marqueurs de montage)
 """
+import csv
+import pathlib
 import subprocess
 import sys
-import pathlib
 
 import numpy as np
 import soundfile as sf
@@ -44,10 +36,12 @@ if voice.ndim == 1:
     voice = np.stack([voice, voice], axis=1)
 N = len(voice)
 DUR = N / SR
-rng = np.random.default_rng(2024)
+rng = np.random.default_rng(1789)
 
-music = np.zeros((N, 2))
+hits = np.zeros((N, 2))   # effets ponctuels (dans les respirations, non baissés)
+beds = np.zeros((N, 2))   # ambiances (baissées sous la voix)
 verb_send = np.zeros((N, 2))
+reperes = []
 
 
 # ———————————————————— outils ————————————————————
@@ -55,20 +49,8 @@ def tarr(d):
     return np.arange(int(d * SR)) / SR
 
 
-def place(sig, t, gain=1.0, pan=0.0, verb=0.0, bus=None):
-    bus = music if bus is None else bus
-    i = int(round(t * SR))
-    if i >= N or len(sig) == 0:
-        return
-    sig = sig[: N - i]
-    if sig.ndim == 1:
-        th = (np.clip(pan, -1, 1) + 1) * np.pi / 4
-        st = np.stack([sig * np.cos(th), sig * np.sin(th)], axis=1) * np.sqrt(2)
-    else:
-        st = sig
-    bus[i: i + len(st)] += st * gain
-    if verb:
-        verb_send[i: i + len(st)] += st * gain * verb
+def noise(d):
+    return rng.standard_normal(int(d * SR))
 
 
 def filt(x, kind, f, order=2):
@@ -76,11 +58,7 @@ def filt(x, kind, f, order=2):
     return signal.sosfilt(signal.butter(order, wn, btype=kind, output="sos"), x, axis=0)
 
 
-def midi(m):
-    return 440.0 * 2 ** ((m - 69) / 12)
-
-
-def adsr(d, a=0.01, r=0.3):
+def env(d, a=0.005, r=0.05):
     n = int(d * SR)
     e = np.ones(n)
     na, nr = min(int(a * SR), n), min(int(r * SR), n)
@@ -91,272 +69,361 @@ def adsr(d, a=0.01, r=0.3):
     return e
 
 
-def pad_voice(freq, d, detune=0.12, bright=1800):
-    """Nappe : 3 dents de scie légèrement désaccordées, filtrées."""
+def norm(x):
+    return x / (np.abs(x).max() + 1e-12)
+
+
+def place(sig, t, gain, pan=0.0, verb=0.0, bus="hit", nom=None):
+    """Pose un son mono (panoramique) ou stéréo à l'instant t. gain en dB par rapport à 0 dBFS crête."""
+    b = hits if bus == "hit" else beds
+    i = int(round(t * SR))
+    if i >= N:
+        return
+    sig = sig[: N - i]
+    if sig.ndim == 1:
+        th = (np.clip(pan, -1, 1) + 1) * np.pi / 4
+        sig = np.stack([sig * np.cos(th), sig * np.sin(th)], axis=1) * np.sqrt(2)
+    g = 10 ** (gain / 20)
+    b[i: i + len(sig)] += sig * g
+    if verb:
+        verb_send[i: i + len(sig)] += sig * g * verb
+    if nom:
+        reperes.append((t, nom))
+
+
+def sweep_noise(d, f0, f1, q=0.5, blocks=40):
+    """Bruit filtré passe-bande dont la fréquence centrale glisse de f0 à f1."""
+    nz = noise(d + 0.1)
+    n = int(d * SR)
+    y = np.zeros(n)
+    edges = np.linspace(0, n, blocks + 1).astype(int)
+    for k in range(blocks):
+        fc = f0 * (f1 / f0) ** (k / (blocks - 1))
+        lo, hi = max(fc * (1 - q), 30), min(fc * (1 + q), SR / 2 - 100)
+        a, b = edges[k], edges[k + 1]
+        seg = filt(nz[max(a - 800, 0): b], "band", (lo, hi))
+        y[a:b] = seg[-(b - a):]
+    return y
+
+
+def resonances(d, modes, damp):
+    """Somme de modes (fréquence, amplitude) amortis : métal, verre…"""
     t = tarr(d)
-    x = sum(signal.sawtooth(2 * np.pi * freq * (1 + c * detune / 100) * t + rng.uniform(0, 6))
-            for c in (-1, 0, 1)) / 3
-    return filt(x, "low", bright, 2)
+    return sum(a * np.sin(2 * np.pi * f * t + rng.uniform(0, 6)) * np.exp(-t / (damp * 1000 / f) ** 0.5 / 4)
+               for f, a in modes)
 
 
-def pad_chord(notes, t0, t1, gain, a=2.0, r=2.5, bright=1600):
-    d = t1 - t0
-    x = sum(pad_voice(midi(n), d, bright=bright) for n in notes) / len(notes)
-    x *= adsr(d, a, r)
-    # léger mouvement stéréo
-    lfo = 0.5 + 0.5 * np.sin(2 * np.pi * 0.07 * tarr(d))
-    st = np.stack([x * (0.8 + 0.2 * lfo), x * (1.0 - 0.2 * lfo)], axis=1)
-    place(st, t0, gain, verb=0.5)
-
-
-def piano(m, d=2.5):
-    """Note de piano électrique / celesta douce (additif, décroissance exponentielle)."""
+# ———————————————————— banque d'effets ————————————————————
+def whoosh(d=0.8, f0=300, f1=3000, pan_move=True):
+    x = sweep_noise(d, f0, f1, 0.6)
     t = tarr(d)
-    f = midi(m)
-    x = np.zeros_like(t)
-    for k, (amp, dec) in enumerate([(1, 1.4), (0.45, 0.8), (0.2, 0.5), (0.1, 0.3)], start=1):
-        x += amp * np.sin(2 * np.pi * f * k * 1.0008 ** (k - 1) * t) * np.exp(-t / dec)
-    x *= adsr(d, 0.004, 0.2)
-    return x * 0.5
+    e = np.sin(np.pi * t / d) ** 2
+    x = norm(x * e)
+    if pan_move:
+        p = np.linspace(-0.8, 0.8, len(x))
+        th = (p + 1) * np.pi / 4
+        return np.stack([x * np.cos(th), x * np.sin(th)], axis=1) * np.sqrt(2)
+    return x
 
 
-def pluck(m, d=0.5):
+def impact(d=2.5, f0=80, f1=38, body=0.6):
+    """Coup sourd de bande-annonce : sub qui descend + claquement filtré."""
     t = tarr(d)
-    x = signal.square(2 * np.pi * midi(m) * t, 0.3) * np.exp(-t / 0.12)
-    return filt(x, "low", 2200, 2) * adsr(d, 0.002, 0.05) * 0.4
+    ph = 2 * np.pi * np.cumsum(f1 + (f0 - f1) * np.exp(-t / 0.12)) / SR
+    sub = np.sin(ph) * np.exp(-t / 0.7)
+    crack = filt(noise(d), "band", (150, 2500)) * np.exp(-t / 0.05)
+    return norm((sub + body * norm(crack)) * env(d, 0.001, 0.3))
 
 
-def kick(d=0.5, f0=95, f1=42):
+def siren(d=6.0, approach=True, dist=1.0):
+    """Deux-tons français (« pin-pon ») qui passe : effet Doppler, distance, panoramique."""
     t = tarr(d)
-    ph = 2 * np.pi * np.cumsum(f1 + (f0 - f1) * np.exp(-t / 0.04)) / SR
-    return np.sin(ph) * np.exp(-t / 0.18) * adsr(d, 0.002, 0.05)
-
-
-def tick(d=0.06):
-    x = rng.standard_normal(int(d * SR))
-    return filt(x, "band", (3500, 9000), 2) * np.exp(-tarr(d) / 0.008)
-
-
-def boom(d=4.0):
-    """Impact grave : sub qui descend + bruit filtré."""
-    t = tarr(d)
-    ph = 2 * np.pi * np.cumsum(30 + 45 * np.exp(-t / 0.25)) / SR
-    sub = np.sin(ph) * np.exp(-t / 1.2)
-    nz = filt(rng.standard_normal(len(t)), "low", 900, 2) * np.exp(-t / 0.35)
-    return (sub + 0.5 * nz) * adsr(d, 0.003, 0.8)
-
-
-def riser(d=1.5, f0=400, f1=4000):
-    t = tarr(d)
-    nz = rng.standard_normal(len(t))
-    # bruit filtré dont la fréquence monte
-    out_ = np.zeros_like(nz)
-    blocks = 30
-    edges = np.linspace(0, len(t), blocks + 1).astype(int)
-    for b in range(blocks):
-        fc = f0 * (f1 / f0) ** (b / blocks)
-        seg = filt(nz[edges[b]: edges[b + 1] + 2000], "band", (fc * 0.7, fc * 1.3), 2)
-        out_[edges[b]: edges[b + 1]] = seg[: edges[b + 1] - edges[b]]
-    return out_ * (t / d) ** 2 * adsr(d, 0.05, 0.03)
-
-
-def siren(d=3.2):
-    """Deux-tons français lointain (la / ré), assourdi."""
-    t = tarr(d)
-    f = np.where((t % 1.0) < 0.5, 435.0, 580.0)
-    f = filt(f, "low", 25, 1)  # glissement doux entre les deux tons
+    base = np.where((t % 1.1) < 0.55, 435.0, 580.0)
+    base = filt(base, "low", 18, 1)
+    # vitesse radiale : s'approche puis s'éloigne
+    u = (t - d * 0.5) / (d * 0.22)
+    doppler = 1 + 0.035 * (-np.tanh(u)) if approach else np.ones_like(t)
+    f = base * doppler
     ph = 2 * np.pi * np.cumsum(f) / SR
-    x = signal.sawtooth(ph, 0.5)
-    x = filt(x, "band", (350, 1600), 2)
-    return x * adsr(d, 0.6, 1.6)
+    x = 0.7 * signal.sawtooth(ph, 0.5) + 0.3 * signal.square(ph)
+    proximity = 1 / (1 + u ** 2)  # 1 au passage
+    x = filt(x, "band", (300, 3500))
+    far = filt(x, "low", 900)
+    x = (far * (1 - proximity) + x * proximity) * (0.25 + 0.75 * proximity) / dist
+    x *= env(d, 0.8, 1.2)
+    p = np.tanh(u) * 0.8
+    th = (p + 1) * np.pi / 4
+    return np.stack([x * np.cos(th), x * np.sin(th)], axis=1) * np.sqrt(2) / np.abs(x).max()
 
 
-# ———————————————————— composition ————————————————————
-BPM = 90
-BEAT = 60 / BPM
+def rue(d):
+    """Ambiance de ville : grondement de circulation lointain."""
+    x = filt(noise(d), "low", 400) + 0.2 * filt(noise(d), "band", (600, 2500))
+    t = tarr(d)
+    mod = 0.7 + 0.3 * np.sin(2 * np.pi * 0.11 * t + 1) * np.sin(2 * np.pi * 0.07 * t)
+    l = norm(x * mod)
+    r = norm(np.roll(l, int(0.013 * SR)) * 0.9 + 0.1 * filt(noise(d), "low", 400))
+    return np.stack([l, r], axis=1) * env(d, 1.0, 1.5)[:, None]
 
-# Accords (ré mineur) : Dm, Bb, F, C, Gm, A
-D_m = [50, 57, 62, 65]
-B_b = [46, 53, 62, 65]
-F_M = [41, 57, 60, 65]
-C_M = [48, 55, 60, 64]
-G_m = [43, 55, 58, 62]
-A_M = [45, 57, 61, 64]
-D_sus = [50, 57, 62, 67]
 
-# 1. Ouverture
-place(boom(), 0.0, 0.55, verb=0.4)
-sir = siren(3.2)
-place(np.stack([sir * 0.6, sir], axis=1), 0.05, 0.05, verb=0.8)
+def radio(d_static=0.35, beep=True):
+    """Radio police : souffle d'ouverture, « bip » de fin de transmission."""
+    s = filt(noise(d_static), "band", (400, 3200), 4) * env(d_static, 0.003, 0.04)
+    s = np.tanh(3 * s / np.abs(s).max())
+    parts = [norm(s) * 0.8]
+    if beep:
+        t = tarr(0.14)
+        b = np.sin(2 * np.pi * np.where(t < 0.07, 1200, 1600) * t) * env(0.14, 0.003, 0.01)
+        parts += [np.zeros(int(0.05 * SR)), b * 0.5]
+    return np.concatenate(parts)
 
-# 2. Actualité (0,8 → 25,9) : nappe + pulsation
-prog1 = [D_m, B_b, F_M, C_M]
-t = 0.4
-i = 0
-while t < 25.9:
-    t_end = min(t + 8 * BEAT, 26.6)
-    pad_chord(prog1[i % 4], t, t_end + 1.2, 0.10, a=1.5 if i else 2.5, r=1.6)
-    t += 8 * BEAT
-    i += 1
-for k in range(int((25.6 - 1.0) / BEAT)):
-    tb = 1.0 + k * BEAT
-    place(kick(), tb, 0.30 if k % 2 == 0 else 0.18)
-    place(tick(), tb + BEAT / 2, 0.05, pan=0.3 if k % 2 else -0.3)
 
-# 3. « Tout cela est codifié » (25,9 → 66,5) : arpège régulier
-prog2 = [D_m, G_m, B_b, A_M]
-t = 25.9
-i = 0
-while t < 66.4:
-    ch = prog2[i % 4]
-    pad_chord(ch, t, min(t + 8 * BEAT, 66.6) + 1.0, 0.09, a=0.8, r=1.2)
-    arp = [ch[1] + 12, ch[2] + 12, ch[3] + 12, ch[2] + 12]
-    for s in range(16):
-        ts = t + s * BEAT / 2
-        if ts >= 66.3:
-            break
-        place(pluck(arp[s % 4]), ts, 0.12, pan=0.4 * np.sin(s), verb=0.3)
-    t += 8 * BEAT
-    i += 1
-for k in range(int((66.3 - 25.9) / BEAT)):
-    tb = 25.9 + k * BEAT
-    place(kick(), tb, 0.22 if k % 4 == 0 else 0.12)
-    place(tick(), tb, 0.035, pan=-0.4)
-    place(tick(), tb + BEAT / 2, 0.025, pan=0.4)
+def foule(d):
+    """Rumeur de manifestation : brouhaha de voix + scansion lointaine."""
+    t = tarr(d)
+    x = np.zeros(len(t))
+    for _ in range(36):
+        f0 = rng.uniform(110, 260)
+        vib = 1 + 0.08 * np.sin(2 * np.pi * rng.uniform(2, 5) * t + rng.uniform(0, 6))
+        ph = 2 * np.pi * np.cumsum(f0 * vib) / SR
+        v = signal.sawtooth(ph)
+        syll = np.clip(np.sin(2 * np.pi * rng.uniform(2.5, 5.5) * t + rng.uniform(0, 6)), 0, 1) ** 2
+        f1 = rng.uniform(500, 900)
+        v = filt(v, "band", (f1 * 0.7, f1 * 1.4)) + 0.5 * filt(v, "band", (1600, 2600))
+        x += v * syll * rng.uniform(0.4, 1)
+    # scansion « on-est-là » : accents toutes les 0,5 s
+    chant = 0.6 + 0.4 * (np.sin(2 * np.pi * 2 * t) > 0.3)
+    x = filt(x * chant, "low", 2200) + 0.4 * filt(noise(d), "band", (300, 1500))
+    x = norm(x)
+    return np.stack([x, np.roll(x, int(0.021 * SR))], axis=1) * env(d, 1.2, 1.2)[:, None]
 
-# Ponctuations des 3 critères : riser court + tic + note (1, 2, 3 notes montantes)
-for n_crit, tc in enumerate([37.45, 44.75, 54.85], start=1):
-    place(riser(0.6, 800, 6000), tc - 0.6, 0.05, verb=0.3)
-    place(boom(1.5), tc, 0.18, verb=0.3)
-    for j in range(n_crit):
-        place(piano(74 + [0, 3, 7][j], 2.0), tc + j * 0.12, 0.22, pan=-0.3 + 0.3 * j, verb=0.6)
 
-# 4. « Donc, vous le voyez » (66,5 → 78,2) : résolution lumineuse en fa majeur
-for ch, t0 in [(F_M, 66.4), (C_M, 69.1), (B_b, 71.8), (F_M, 74.5)]:
-    pad_chord([n + 12 if n < 48 else n for n in ch], t0, t0 + 3.9, 0.09, a=0.9, r=1.4, bright=2400)
-for k, (m, tn) in enumerate([(69, 66.5), (72, 69.2), (74, 71.9), (72, 74.6), (69, 76.4)]):
-    place(piano(m, 2.6), tn, 0.16, pan=0.2, verb=0.6)
-for k in range(int((78.0 - 66.5) / BEAT)):
-    place(kick(0.4, 80, 45), 66.5 + k * BEAT, 0.10 if k % 2 == 0 else 0.0)
+def sifflet(d=0.7):
+    """Sifflet de maintien de l'ordre (roulement de la bille)."""
+    t = tarr(d)
+    f = 2900 * (1 + 0.01 * np.sin(2 * np.pi * 6 * t))
+    trill = 0.6 + 0.4 * np.sin(2 * np.pi * 38 * t)
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * trill + 0.15 * filt(noise(d), "band", (2500, 3500))
+    return norm(x * env(d, 0.01, 0.08))
 
-# 5. « Il n'empêche que parfois… » (78,2 → 86,3) : bascule sombre
-place(boom(3.0), 78.2, 0.12, verb=0.5)
-t = tarr(8.4)
-drone = (np.sin(2 * np.pi * midi(38) * t) + 0.6 * np.sin(2 * np.pi * midi(39) * t)) * adsr(8.4, 1.5, 1.8)
-drone = filt(drone + 0.3 * pad_voice(midi(50), 8.4, bright=600), "low", 900)
-place(drone, 78.2, 0.06, verb=0.4)
-pad_chord([50, 53, 56, 62], 78.3, 86.6, 0.05, a=2.5, r=2.0, bright=900)  # Dm(b5), inquiétant
-for k in range(4):  # battement de cœur ralenti
-    tb = 79.0 + k * 1.5
-    place(kick(0.35, 70, 40), tb, 0.12)
-    place(kick(0.35, 70, 40), tb + 0.22, 0.07)
-place(boom(2.0), 84.5, 0.10, verb=0.5)  # « …qui sont graves. »
 
-# 6. Le podcast, l'histoire de Maud (86,3 → 95,9) : piano intime
-pad_chord([50, 57, 62, 65], 86.2, 96.3, 0.06, a=2.0, r=1.5, bright=1100)
-melodie = [(62, 86.4), (65, 87.1), (69, 87.8), (67, 89.2), (65, 90.6),
-           (62, 91.4), (64, 92.8), (65, 93.5), (62, 94.6)]
-for m, tn in melodie:
-    place(piano(m, 2.8), tn, 0.17, pan=-0.15, verb=0.7)
-for m, tn in [(50, 86.4), (46, 89.2), (43, 91.4), (45, 93.5)]:
-    place(piano(m, 3.2), tn, 0.12, pan=0.15, verb=0.5)
+def culasse():
+    """« Clic-clac » métallique : arme manipulée."""
+    def clic(d=0.12, scale=1.0):
+        t = tarr(d)
+        tr = filt(noise(d), "band", (1800, 7000)) * np.exp(-t / 0.004)
+        ring = resonances(d, [(3100 * scale, 1), (4700 * scale, 0.7), (6900 * scale, 0.5)], 2)
+        return norm(norm(tr) + 0.6 * ring * np.exp(-t / 0.03))
+    gap = np.zeros(int(0.17 * SR))
+    slide = norm(sweep_noise(0.09, 2500, 5000, 0.4)) * 0.4 * env(0.09, 0.01, 0.02)
+    return np.concatenate([clic(), slide, gap, clic(0.15, 0.85)])
 
-# 7. « Alors, la police, on en débat ? » (95,9 → fin) : remontée et accord suspendu
-place(riser(2.2, 300, 5000), 95.9, 0.07, verb=0.3)
-pad_chord(D_sus, 95.8, DUR, 0.10, a=1.2, r=0.6, bright=2600)
-for k in range(5):
-    place(kick(0.4), 96.0 + k * BEAT / 2, 0.10 + 0.04 * k)
-place(boom(1.0), 98.25, 0.35, verb=0.5)
-for j, m in enumerate([62, 67, 69, 74]):
-    place(piano(m, 0.8), 98.25 + 0.03 * j, 0.18, verb=0.5)
 
-# ———————————————————— réverbération (convolution, IR synthétique) ————————————————————
-ir_len = int(2.4 * SR)
+def tampon():
+    """Coup de tampon sur une feuille : validation."""
+    d = 0.5
+    t = tarr(d)
+    thud = np.sin(2 * np.pi * 95 * t) * np.exp(-t / 0.05)
+    slap = filt(noise(d), "band", (700, 4500)) * np.exp(-t / 0.018)
+    wood = resonances(d, [(420, 1), (980, 0.5)], 1) * np.exp(-t / 0.04)
+    return norm(thud + 0.8 * norm(slap) + 0.3 * norm(wood)) * env(d, 0.0005, 0.1)
+
+
+def pages(n=3):
+    """Pages de code qu'on feuillette."""
+    seq = []
+    for _ in range(n):
+        d = rng.uniform(0.22, 0.32)
+        x = sweep_noise(d, 1500, 5000, 0.7, 20)
+        crackle = (rng.random(int(d * SR)) < 0.004) * rng.standard_normal(int(d * SR)) * 3
+        x = (x + filt(crackle, "high", 2000)) * np.sin(np.pi * tarr(d) / d) ** 1.5
+        seq += [norm(x), np.zeros(int(rng.uniform(0.05, 0.12) * SR))]
+    return np.concatenate(seq)
+
+
+def machine_a_ecrire(n=7, ding=True):
+    seq = []
+    for k in range(n):
+        d = 0.06
+        t = tarr(d)
+        x = filt(noise(d), "band", (1200, 6000)) * np.exp(-t / 0.006)
+        x += 0.5 * np.sin(2 * np.pi * 180 * t) * np.exp(-t / 0.01)
+        seq += [norm(x) * rng.uniform(0.6, 1), np.zeros(int(rng.uniform(0.05, 0.11) * SR))]
+    if ding:
+        t = tarr(1.2)
+        bell = resonances(1.2, [(2350, 1), (5900, 0.4), (8700, 0.15)], 6) * np.exp(-t / 0.35)
+        seq += [np.zeros(int(0.06 * SR)), norm(bell) * 0.6]
+    return np.concatenate(seq)
+
+
+def balance():
+    """Les plateaux d'une balance qui s'équilibrent : deux tintements métalliques."""
+    def tint(f, d=1.4):
+        t = tarr(d)
+        return norm(resonances(d, [(f, 1), (f * 2.76, 0.4), (f * 5.4, 0.2)], 4) * np.exp(-t / 0.4))
+    a, b = tint(1650), tint(1760)
+    out_ = np.zeros(int(1.9 * SR))
+    out_[: len(a)] += a
+    i = int(0.38 * SR)
+    out_[i: i + len(b)] += b[: len(out_) - i] * 0.8
+    return out_ * env(len(out_) / SR, 0.001, 0.3)
+
+
+def coeur(n=3, bpm=58):
+    seq = np.zeros(int((n * 60 / bpm + 0.5) * SR))
+    for k in range(n):
+        for off, g in [(0, 1), (0.24, 0.6)]:
+            d = 0.25
+            t = tarr(d)
+            b = np.sin(2 * np.pi * np.cumsum(55 + 25 * np.exp(-t / 0.03)) / SR) * np.exp(-t / 0.07)
+            i = int((k * 60 / bpm + off) * SR)
+            seq[i: i + len(b)] += b * g
+    return norm(seq)
+
+
+def acouphene(d=3.0, f=5200):
+    """Sifflement d'oreille, très discret : évoque le choc (l'histoire de Maud)."""
+    t = tarr(d)
+    x = np.sin(2 * np.pi * f * t) + 0.3 * np.sin(2 * np.pi * f * 1.004 * t)
+    e = np.minimum(t / 0.05, 1) * np.exp(-t / (d / 3))
+    return norm(x * e) * env(d, 0.01, 0.5)
+
+
+def micro_on():
+    """Mise en route d'un podcast : déclic de micro + petit carillon « à l'antenne »."""
+    d = 0.08
+    t = tarr(d)
+    clic = filt(noise(d), "band", (800, 5000)) * np.exp(-t / 0.006) + np.sin(2 * np.pi * 120 * t) * np.exp(-t / 0.02)
+    tt = tarr(1.2)
+    ch = sum(np.sin(2 * np.pi * f * tt) * np.exp(-tt / 0.35) * (tt >= o) for f, o in [(880, 0), (1318.5, 0.12)])
+    seq = np.zeros(int(1.4 * SR))
+    seq[: len(clic)] += norm(clic)
+    i = int(0.12 * SR)
+    seq[i: i + len(ch)] += norm(ch)[: len(seq) - i] * 0.35
+    return seq
+
+
+# ———————————————————— placement (temps calés sur le SRT et les respirations) ————————————————————
+# Ouverture : rue + sirène qui passe, coup sourd sous « La police »
+place(rue(9.0), 0.0, -30, bus="bed", nom="Ambiance rue (jusqu'à 9 s)")
+place(siren(5.5), 0.0, -29, verb=0.5, bus="bed", nom="Sirène de police qui passe (deux-tons)")
+place(impact(2.5), 0.02, -15, verb=0.3, nom="Coup sourd d'ouverture")
+place(whoosh(0.7, 500, 4000), 2.25, -24, nom="Transition « Si je pose la question »")
+
+# « l'actualité parle beaucoup de la police » → radio police
+place(radio(), 8.05, -22, pan=0.4, verb=0.2, nom="Radio police (souffle + bip)")
+
+# « cette fameuse loi sur l'utilisation des armes »
+place(pages(2), 9.7, -20, pan=-0.3, nom="Pages de loi feuilletées")
+place(culasse(), 11.62, -19, pan=0.35, verb=0.25, nom="Arme : clic-clac de culasse")
+place(impact(2.0, 70, 35, 0.3), 15.2, -18, verb=0.4, nom="Coup sourd « le permis de tuer »")
+
+# maintien de l'ordre, manifestations des lycéens
+place(foule(6.5), 16.4, -24, verb=0.4, bus="bed", nom="Rumeur de manifestation (16,4 → 22,9 s)")
+place(sifflet(0.45), 18.78, -27, pan=-0.6, verb=0.6, nom="Sifflet")
+place(sifflet(0.8), 20.52, -25, pan=0.5, verb=0.6, nom="Sifflet")
+place(radio(0.25, beep=False), 22.62, -25, pan=-0.4, nom="Radio police")
+
+# « Tout cela est codifié dans le code de la sécurité intérieure »
+place(whoosh(0.5, 800, 5000), 25.45, -26, nom="Transition")
+place(machine_a_ecrire(6), 28.75, -20, pan=0.3, verb=0.2, nom="Machine à écrire + « ding »")
+place(pages(2), 33.0, -22, pan=-0.3, nom="Pages")
+
+# Les trois critères : un coup de tampon chacun, dans le silence juste avant
+for tc, nom in [(37.0, "Tampon : 1er critère, nécessité"),
+                (44.2, "Tampon : 2e critère, proportionnalité"),
+                (54.4, "Tampon : 3e critère, discernement")]:
+    place(whoosh(0.35, 1500, 6000, False), tc - 0.3, -30)
+    place(tampon(), tc, -16, verb=0.25, nom=nom)
+place(balance(), 48.2, -26, verb=0.4, nom="Balance qui s'équilibre (proportionnalité)")
+place(radio(), 57.72, -26, pan=0.4, nom="Radio police (« les policiers, les gendarmes »)")
+
+# « Donc, vous le voyez, tout cela est extrêmement codifié »
+place(whoosh(0.6, 400, 3500), 65.6, -25, nom="Transition « Donc, vous le voyez »")
+place(tampon(), 68.95, -17, verb=0.2, nom="Tampon « codifié »")
+
+# « Il n'empêche que parfois… des erreurs… graves »
+place(impact(3.0, 60, 32, 0.2), 77.75, -19, verb=0.5, nom="Bascule sombre « Il n'empêche que parfois »")
+place(coeur(4), 79.0, -24, nom="Battements de cœur")
+place(impact(2.0, 55, 30, 0.15), 85.35, -20, verb=0.5, nom="Coup grave « qui sont graves »")
+
+# Le podcast, l'histoire de Maud
+place(micro_on(), 86.0, -24, verb=0.3, nom="Déclic micro + carillon (podcast)")
+place(acouphene(3.2), 92.0, -33, nom="Sifflement d'oreille, très discret (Maud perd un œil)")
+
+# « Alors, la police, on en débat ? »
+place(siren(4.0), 94.75, -24, verb=0.6, bus="bed", nom="Sirène lointaine")
+place(whoosh(0.9, 300, 4500), 94.9, -24, nom="Transition finale")
+place(impact(1.2, 75, 40, 0.5), 98.24, -16, verb=0.4, nom="Coup final sur « débat ? »")
+
+# ———————————————————— réverbération (IR synthétique) ————————————————————
+ir_len = int(1.8 * SR)
 tir = np.arange(ir_len) / SR
-ir = rng.standard_normal((ir_len, 2)) * np.exp(-tir / 0.55)[:, None]
-ir = filt(ir, "low", 5000)
-ir[: int(0.02 * SR)] = 0
+ir = rng.standard_normal((ir_len, 2)) * np.exp(-tir / 0.4)[:, None]
+ir = filt(ir, "low", 6000)
+ir[: int(0.015 * SR)] = 0
 ir /= np.sqrt((ir ** 2).sum(axis=0))
 wet = np.stack([signal.fftconvolve(verb_send[:, c], ir[:, c])[:N] for c in range(2)], axis=1)
-music += wet * 0.35
-music = filt(music, "high", 35)
 
-# ———————————————————— ducking sous la voix ————————————————————
-vmono = np.abs(voice.mean(axis=1))
+# ———————————————————— ducking des ambiances sous la voix ————————————————————
 hop = int(0.01 * SR)
 nb = int(np.ceil(N / hop))
-env = np.array([vmono[i * hop:(i + 1) * hop].max(initial=0) for i in range(nb)])
-env_db = 20 * np.log10(env + 1e-9)
-speaking = (env_db > -40).astype(float)
-# attaque 60 ms (avec anticipation 40 ms), relâche 450 ms
-att, rel = np.exp(-1 / 6), np.exp(-1 / 45)
+vm = np.abs(voice.mean(axis=1))
+lvl = 20 * np.log10(np.array([vm[i * hop:(i + 1) * hop].max(initial=0) for i in range(nb)]) + 1e-9)
+sp = np.concatenate([(lvl > -40).astype(float)[4:], np.zeros(4)])  # anticipation 40 ms
 g = np.zeros(nb)
-lead = 4
-sp = np.concatenate([speaking[lead:], np.zeros(lead)])
 acc = 0.0
 for i in range(nb):
-    c = att if sp[i] > acc else rel
+    c = np.exp(-1 / 5) if sp[i] > acc else np.exp(-1 / 40)
     acc = c * acc + (1 - c) * sp[i]
     g[i] = acc
-DUCK_DB = -9.0
-gain_db = DUCK_DB * g
-duck = 10 ** (np.interp(np.arange(N), np.arange(nb) * hop + hop / 2, gain_db) / 20)
-music *= duck[:, None]
+duck = 10 ** (np.interp(np.arange(N), np.arange(nb) * hop + hop / 2, -8.0 * g) / 20)
 
-# fondu d'entrée/sortie très court pour démarrer et finir exactement sur le silence
-fi, fo = int(0.005 * SR), int(0.5 * SR)
-music[:fi] *= np.linspace(0, 1, fi)[:, None]
-music[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 2
+fx = hits + beds * duck[:, None] + wet * 0.3
+fx = filt(fx, "high", 30)
+fo = int(0.4 * SR)
+fx[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 2
 
-
-# ———————————————————— niveaux et mixage ————————————————————
-def rms_db(x):
-    return 20 * np.log10(np.sqrt((x ** 2).mean()) + 1e-12)
-
-
-# voix : passe-haut 70 Hz, rien d'autre (on ne touche pas au timbre)
-v = filt(voice, "high", 70)
-# musique calée ~12 dB sous la voix en moyenne (après ducking)
-music *= 10 ** ((rms_db(v) - 12 - rms_db(music)) / 20)
-mix = v + music
+# ———————————————————— mixage ————————————————————
+v = filt(voice, "high", 70)  # seul traitement de la voix : coupe les graves parasites
+mix = v + fx
 
 
 def limiter(x, ceiling=10 ** (-1.0 / 20), look=0.005, release=0.08):
-    """Limiteur à anticipation sans décalage temporel (le gain est anticipé, pas le signal)."""
-    peak = np.abs(x).max(axis=1)
-    need = np.minimum(1.0, ceiling / np.maximum(peak, 1e-12))
-    L = int(look * SR)
-    # min glissant vers l'avant : le gain baisse AVANT la crête
-    need = minimum_filter1d(need, size=2 * L + 1, mode="nearest")
+    """Limiteur à anticipation, sans décalage temporel."""
+    need = np.minimum(1.0, ceiling / np.maximum(np.abs(x).max(axis=1), 1e-12))
+    need = minimum_filter1d(need, size=2 * int(look * SR) + 1, mode="nearest")
     r = np.exp(-1 / (release * SR))
     gg = np.empty_like(need)
-    acc_ = 1.0
+    a = 1.0
     for i in range(len(need)):
-        acc_ = need[i] if need[i] < acc_ else r * acc_ + (1 - r) * need[i]
-        gg[i] = acc_
-    gg = signal.sosfiltfilt(signal.butter(1, 200 / (SR / 2), output="sos"), gg)
+        a = need[i] if need[i] < a else r * a + (1 - r) * need[i]
+        gg[i] = a
     return x * gg[:, None]
 
 
-# gain global pour viser ~ -16 LUFS (norme réseaux sociaux), mesuré ensuite par ffmpeg
-def lufs(path):
-    r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-af", "ebur128",
+def lufs(x):
+    p = out / "_probe.wav"
+    sf.write(p, x, SR, subtype="FLOAT")
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(p), "-af", "ebur128",
                         "-f", "null", "-"], capture_output=True, text=True).stderr
+    p.unlink()
     return float(r.split("Integrated loudness:")[1].split("I:")[1].split("LUFS")[0])
 
 
-probe = out / "_probe.wav"
-sf.write(probe, mix, SR, subtype="FLOAT")
-g_lin = 10 ** ((-16.0 - lufs(probe)) / 20)
-probe.unlink()
-mix = limiter(mix * g_lin)
-music_out = limiter(music * g_lin)
-mix = np.clip(mix, -0.98, 0.98)
+g_lin = 10 ** ((-16.0 - lufs(mix)) / 20)  # -16 LUFS : niveau usuel des réseaux sociaux
+mix = np.clip(limiter(mix * g_lin), -0.98, 0.98)
+fx_out = np.clip(limiter(fx * g_lin), -0.98, 0.98)
 
-assert len(mix) == N and len(music_out) == N
+assert len(mix) == N and len(fx_out) == N
 sf.write(out / "La_police_habillage_mix.wav", mix, SR, subtype="PCM_24")
-sf.write(out / "La_police_musique_seule.wav", music_out, SR, subtype="PCM_24")
+sf.write(out / "La_police_effets_seuls.wav", fx_out, SR, subtype="PCM_24")
 subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i",
                 str(out / "La_police_habillage_mix.wav"), "-c:a", "libmp3lame", "-b:a", "320k",
                 str(out / "La_police_habillage_mix.mp3")], check=True)
-print(f"OK : {N} échantillons ({DUR:.3f} s) à {SR} Hz")
+with open(out / "La_police_reperes.csv", "w", newline="", encoding="utf-8") as fh:
+    w = csv.writer(fh, delimiter=";")
+    w.writerow(["temps", "secondes", "effet"])
+    for t, nom in sorted(reperes):
+        w.writerow([f"{int(t // 60):02d}:{t % 60:06.3f}", f"{t:.2f}", nom])
+print(f"OK : {N} échantillons ({DUR:.3f} s) à {SR} Hz, {len(reperes)} effets")

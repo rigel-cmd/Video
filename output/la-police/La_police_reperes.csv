@@ -1,0 +1,31 @@
+temps;secondes;effet
+00:00.000;0.00;Ambiance rue (jusqu'à 9 s)
+00:00.000;0.00;Sirène de police qui passe (deux-tons)
+00:00.020;0.02;Coup sourd d'ouverture
+00:02.250;2.25;Transition « Si je pose la question »
+00:08.050;8.05;Radio police (souffle + bip)
+00:09.700;9.70;Pages de loi feuilletées
+00:11.620;11.62;Arme : clic-clac de culasse
+00:15.200;15.20;Coup sourd « le permis de tuer »
+00:16.400;16.40;Rumeur de manifestation (16,4 → 22,9 s)
+00:18.780;18.78;Sifflet
+00:20.520;20.52;Sifflet
+00:22.620;22.62;Radio police
+00:25.450;25.45;Transition
+00:28.750;28.75;Machine à écrire + « ding »
+00:33.000;33.00;Pages
+00:37.000;37.00;Tampon : 1er critère, nécessité
+00:44.200;44.20;Tampon : 2e critère, proportionnalité
+00:48.200;48.20;Balance qui s'équilibre (proportionnalité)
+00:54.400;54.40;Tampon : 3e critère, discernement
+00:57.720;57.72;Radio police (« les policiers, les gendarmes »)
+01:05.600;65.60;Transition « Donc, vous le voyez »
+01:08.950;68.95;Tampon « codifié »
+01:17.750;77.75;Bascule sombre « Il n'empêche que parfois »
+01:19.000;79.00;Battements de cœur
+01:25.350;85.35;Coup grave « qui sont graves »
+01:26.000;86.00;Déclic micro + carillon (podcast)
+01:32.000;92.00;Sifflement d'oreille, très discret (Maud perd un œil)
+01:34.750;94.75;Sirène lointaine
+01:34.900;94.90;Transition finale
+01:38.240;98.24;Coup final sur « débat ? »
